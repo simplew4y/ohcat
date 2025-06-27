@@ -199,8 +199,13 @@ export const catConfigs: CatConfig[] = [
   }
 ];
 
-export function getCatConfigById(id: string): CatConfig | undefined {
-  return catConfigs.find(config => config.id === id);
+export function getCatConfigById(id: string): CatConfig {
+  const found = catConfigs.find(config => config.id === id);
+  if (found) {
+    return found;
+  }
+  // 返回一个默认的 CatConfig 对象，字段根据你的 CatConfig 类型定义填写
+  return catConfigs[0];
 }
 
 export function getAllCatConfigs(): CatConfig[] {

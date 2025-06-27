@@ -4,6 +4,9 @@ import { ReactNode } from 'react';
 import FloatingNavigation from './FloatingNavigation';
 import ChatInterface from './ChatInterface';
 import CatScene from '../cats/CatScene';
+import { Provider, useSelector } from 'react-redux';
+import store from "@/store";
+
 
 interface MainLayoutProps {
   children?: ReactNode;
@@ -11,6 +14,7 @@ interface MainLayoutProps {
 
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
+      <Provider store={store}>
     <div className="relative w-full h-screen overflow-hidden" style={{ background: 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)' }}>
       {/* 简化的装饰效果 */}
       <div className="absolute inset-0 overflow-hidden">
@@ -64,6 +68,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         }
       `}</style>
     </div>
+      </Provider>
   );
 };
 

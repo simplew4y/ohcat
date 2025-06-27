@@ -3,8 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { useCatStore } from '@/store/catStore';
 import { useActionStore } from '@/store/actionStore';
-import { ChatService } from '@/lib/chatService';
+import { v4 as uuidv4 } from 'uuid';
+import { ChatService } from '@/services/chatService';
 import { getCatConfigById } from '@/lib/catConfigs';
+import {CatConfig} from "@/types/cat";
+import assert from "assert";
+
+import {useJoin, useLeave} from "@/lib/useCommon";
+import {useDispatch, useSelector} from "react-redux";
+import {RootState} from "@/store";
+import {clearHistoryMsg, setHistoryMsg} from "@/store/slices/room";
 
 interface ChatMessage {
   id: string;
@@ -18,17 +26,41 @@ const ChatInterface = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [message, setMessage] = useState('');
   // 每个角色独立的聊天记录
-  const [chatHistory, setChatHistory] = useState<Record<string, ChatMessage[]>>({});
-  const [isRecording, setIsRecording] = useState(false);
+  // const [chatHistory, setChatHistory] = useState<Record<string, ChatMessage[]>>({});
+  // 是否正在语音转文字
+  const [isTranscribing, setIsTranscribing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  // 每个角色独立的聊天记录，用redux维护便于更新语音字幕
+  const globalMsg = useSelector((state: RootState) => state.room.msgHistory);
+  const dispatch = useDispatch();
+
+
+  // dispatch(setHistoryMsg({ text: msg, user, paragraph, definite }));
+  const setChatHistory = (msg, catId, paragraph, definite) => {
+    dispatch(setHistoryMsg({text: msg, user: catId, paragraph, definite}));
+  };
+  const clearChatHistory = () => {
+    dispatch(clearHistoryMsg());
+  }
+
+  // dispatch(setHistoryMsg({ text: msg, user, paragraph, definite }));
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { currentCat } = useCatStore();
   const { triggerAction } = useActionStore();
   const chatService = ChatService.getInstance();
-  
-  // 获取当前角色的聊天记录
-  const currentMessages = currentCat ? (chatHistory[currentCat.getState().id] || []) : [];
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const [joining, dispatchJoin] = useJoin();
+  const roomId = uuidv4();
+  const username = 'testing-user';
+  const leave = useLeave();  // 顶层调用 Hook
 
+
+
+  // 获取当前角色的聊天记录
+  // const currentMessages = currentCat ? (globalMsg[currentCat.getState().id] || []) : [];
+  const currentMessages = globalMsg
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -49,35 +81,29 @@ const ChatInterface = () => {
     if (!message.trim() || !currentCat || isLoading) return;
 
     const userMessageContent = message;
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: userMessageContent,
-      isUser: true,
-      timestamp: new Date(),
-    };
+    // const userMessage: ChatMessage = {
+    //   id: Date.now().toString(),
+    //   content: userMessageContent,
+    //   isUser: true,
+    //   timestamp: new Date(),
+    // };
 
     const catId = currentCat.getState().id;
     
     // 添加用户消息到当前角色的聊天记录
-    setChatHistory(prev => ({
-      ...prev,
-      [catId]: [...(prev[catId] || []), userMessage]
-    }));
+    setChatHistory(message, catId, true, true);
     setMessage('');
     setIsLoading(true);
 
     // 添加加载中的消息
-    const loadingMessage: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      content: '思考中...',
-      isUser: false,
-      timestamp: new Date(),
-      isLoading: true,
-    };
-    setChatHistory(prev => ({
-      ...prev,
-      [catId]: [...(prev[catId] || []), loadingMessage]
-    }));
+    // const loadingMessage: ChatMessage = {
+    //   id: (Date.now() + 1).toString(),
+    //   content: '思考中...',
+    //   isUser: false,
+    //   timestamp: new Date(),
+    //   isLoading: true,
+    // };
+    setChatHistory('思考中...', 'RobotMan_', false, false);
 
     try {
       const catConfig = getCatConfigById(currentCat.getState().id);
@@ -97,20 +123,21 @@ const ChatInterface = () => {
       });
 
       // 移除加载消息，添加AI回复
-      setChatHistory(prev => {
-        const currentCatMessages = prev[catId] || [];
-        const newMessages = currentCatMessages.filter(msg => !msg.isLoading);
-        const catMessage: ChatMessage = {
-          id: response.timestamp,
-          content: response.reply,
-          isUser: false,
-          timestamp: new Date(response.timestamp),
-        };
-        return {
-          ...prev,
-          [catId]: [...newMessages, catMessage]
-        };
-      });
+      setChatHistory(response.reply, 'RobotMan_', true, true)
+      // setChatHistory(prev => {
+      //   const currentCatMessages = prev[catId] || [];
+      //   const newMessages = currentCatMessages.filter(msg => !msg.isLoading);
+      //   const catMessage: ChatMessage = {
+      //     id: response.timestamp,
+      //     content: response.reply,
+      //     isUser: false,
+      //     timestamp: new Date(response.timestamp),
+      //   };
+      //   return {
+      //     ...prev,
+      //     [catId]: [...newMessages, catMessage]
+      //   };
+      // });
 
       // 如果是罗西，触发愤怒动作
       if (currentCat.getState().id === 'roasty') {
@@ -128,21 +155,22 @@ const ChatInterface = () => {
       console.error('Failed to get AI response:', error);
       
       // 移除加载消息，添加错误回复
-      setChatHistory(prev => {
-        const catId = currentCat.getState().id;
-        const currentCatMessages = prev[catId] || [];
-        const newMessages = currentCatMessages.filter(msg => !msg.isLoading);
-        const errorMessage: ChatMessage = {
-          id: (Date.now() + 2).toString(),
-          content: chatService.getErrorReply(catId),
-          isUser: false,
-          timestamp: new Date(),
-        };
-        return {
-          ...prev,
-          [catId]: [...newMessages, errorMessage]
-        };
-      });
+      setChatHistory(chatService.getErrorReply(catId), 'RobotMan_', true, true);
+    // setChatHistory(prev => {
+      //   const catId = currentCat.getState().id;
+      //   const currentCatMessages = prev[catId] || [];
+      //   const newMessages = currentCatMessages.filter(msg => !msg.isLoading);
+      //   const errorMessage: ChatMessage = {
+      //     id: (Date.now() + 2).toString(),
+      //     content: chatService.getErrorReply(catId),
+      //     isUser: false,
+      //     timestamp: new Date(),
+      //   };
+      //   return {
+      //     ...prev,
+      //     [catId]: [...newMessages, errorMessage]
+      //   };
+      // });
     } finally {
       setIsLoading(false);
     }
@@ -155,9 +183,27 @@ const ChatInterface = () => {
     }
   };
 
+
+  // 语音对话。录制时候文本框缩放到右下角，输入框删除，并且在聊天记录中自动加入字幕。
   const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    // TODO: 实现语音录制功能
+    if (isTranscribing) {
+      leave();
+      setIsTranscribing(false);
+    } else {
+      try {
+        dispatchJoin(
+            {
+              roomId,
+              username,
+              publishAudio: true,
+            },
+            false
+        );
+        setIsTranscribing(true);
+      } catch (err) {
+        console.error('麦克风权限被拒绝或发生错误:', err);
+      }
+    }
   };
 
   // 清空当前角色的聊天记录
@@ -165,18 +211,26 @@ const ChatInterface = () => {
     if (!currentCat) return;
     
     const catId = currentCat.getState().id;
-    setChatHistory(prev => ({
-      ...prev,
-      [catId]: []
-    }));
+
+    clearChatHistory();
+
+    // setChatHistory(prev => ({
+    //   ...prev,
+    //   [catId]: []
+    // }));
   };
 
   return (
-    <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
-      <div className={`transition-all duration-500 ${isExpanded ? 'w-96 h-80' : 'w-80 h-16'}`}>
+      <div
+          className="fixed bottom-6 transform -translate-x-1/2 z-50 transition-all duration-500 ease-in-out"
+          style={{
+            left: isTranscribing ? '75%' : '50%',
+          }}
+      >
+        <div className={`transition-all duration-500 ${isExpanded ? 'w-96 h-80' : 'w-80 h-16'}`}>
         {/* 主聊天容器 */}
+
         <div className="relative w-full h-full rounded-3xl bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl border border-white/20 shadow-2xl shadow-black/50 overflow-hidden">
-          
           {/* 折叠状态的顶部栏 */}
           <div 
             className="flex items-center justify-between p-4 cursor-pointer"
@@ -239,31 +293,31 @@ const ChatInterface = () => {
                   ) : (
                     currentMessages.map((msg) => (
                       <div
-                        key={msg.id}
-                        className={`flex ${msg.isUser ? 'justify-end' : 'justify-start'}`}
+                        key={msg.time}
+                        className={`flex ${msg.user=='testing-user' ? 'justify-end' : 'justify-start'}`}
                       >
                         <div
                           className={`
                             max-w-xs px-4 py-2 rounded-2xl text-sm
-                            ${msg.isUser 
+                            ${msg.user=='testing-user'
                               ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' 
-                              : msg.isLoading 
+                              : msg.definite==false
                                 ? 'bg-yellow-500/20 text-yellow-200 border border-yellow-400/30 animate-pulse'
                                 : 'bg-white/20 text-white border border-white/30'
                             }
                           `}
                         >
-                          {msg.isLoading && (
+                          {msg.definite==false && (
                             <div className="flex items-center space-x-1">
                               <div className="flex space-x-1">
                                 <div className="w-1 h-1 bg-current rounded-full animate-bounce"></div>
                                 <div className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                                 <div className="w-1 h-1 bg-current rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                               </div>
-                              <span className="ml-2">{msg.content}</span>
+                              <span className="ml-2">{msg.value}</span>
                             </div>
                           )}
-                          {!msg.isLoading && msg.content}
+                          {msg.definite && msg.value}
                         </div>
                       </div>
                     ))
@@ -273,62 +327,95 @@ const ChatInterface = () => {
               </div>
 
               {/* 输入区域 */}
-              <div className="p-4 border-t border-white/20">
-                <div className="flex items-center space-x-3">
+              <div className="flex w-full p-4 border-t border-white/20">
+                {/* 左侧输入框+发送按钮容器 */}
+                <div
+                    className={`
+      flex items-center space-x-3
+      transition-all duration-500 ease-in-out
+      overflow-hidden
+      ${isTranscribing ? 'w-0 opacity-0' : 'w-4/5 opacity-100'}
+    `}
+                >
                   {/* 文本输入 */}
-                  <div className="flex-1 relative">
+                  <div className="flex-1 relative transition-opacity duration-500">
                     <input
-                      type="text"
-                      value={message}
-                      onChange={(e) => setMessage(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder={currentCat ? "输入消息..." : "请先选择猫咪"}
-                      disabled={!currentCat || isLoading}
-                      className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-white/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        type="text"
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder={currentCat ? "输入消息..." : "请先选择猫咪"}
+                        disabled={!currentCat || isLoading || isTranscribing}
+                        className="w-full px-4 py-3 rounded-2xl bg-white/10 border border-white/20 text-white placeholder-white/50 focus:outline-none focus:border-white/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                   </div>
 
-                  {/* 语音按钮 */}
+                  {/* 发送按钮 */}
                   <button
-                    onClick={toggleRecording}
-                    className={`
-                      w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300
-                      ${isRecording 
-                        ? 'bg-red-500 animate-pulse' 
-                        : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg'
-                      }
-                    `}
+                      onClick={sendMessage}
+                      disabled={!message.trim() || !currentCat || isLoading || isTranscribing}
+                      className="w-12 h-12 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all duration-300"
+                  >
+                    {isLoading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    ) : (
+                        <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    )}
+                  </button>
+                </div>
+
+                {/* 右侧录音按钮容器 */}
+                <div className={` flex w-1/5 justify-end transition-all duration-500`}>
+
+                  <button
+                      onClick={toggleRecording}
+                      disabled={isTranscribing && joining}
+                      className={`
+        w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500
+        ${isTranscribing ? 'bg-red-500 animate-pulse ml-0' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg ml-3'}
+      `}
+                      style={{
+                        marginLeft: isTranscribing ? '10' : '0',  // 这里用 marginLeft 控制按钮位置
+                        transition: 'margin-left 0.5s ease-in-out',
+                      }}
                   >
                     <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                     </svg>
                   </button>
 
-                  {/* 发送按钮 */}
-                  <button
-                    onClick={sendMessage}
-                    disabled={!message.trim() || !currentCat || isLoading}
-                    className="w-12 h-12 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transition-all duration-300"
-                  >
-                    {isLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                      </svg>
-                    )}
-                  </button>
                 </div>
+
+                <div
+                    className={`
+                      flex items-center space-x-3
+                      transition-all duration-500 ease-in-out
+                      overflow-hidden
+                      ${isTranscribing ? 'w-4/5 opacity-100' : 'w-0 opacity-0'}
+                    `}
+                    >
+                  {joining ? (<div className="flex w-full text-gray-400 text-sm font-medium select-none justify-center whitespace-nowrap">
+                    连接中
+                  </div>) : (<div className="flex w-full text-gray-400 text-sm font-medium select-none justify-center whitespace-nowrap">
+                    语音模式，正在聆听
+                  </div>)}
+
               </div>
+              </div>
+
             </>
           )}
         </div>
 
         {/* 玻璃反光效果 */}
         <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+
       </div>
     </div>
   );
+
 };
 
 export default ChatInterface;
