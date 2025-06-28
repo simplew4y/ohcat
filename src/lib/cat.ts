@@ -1,4 +1,4 @@
-import { CatConfig, CatState, CatAction, ChatMessage } from '@/types/cat';
+import {CatConfig, CatState, CatAction, ChatMessage, CatAIConfig} from '@/types/cat';
 
 export class VirtualCat {
   private state: CatState;
@@ -14,7 +14,7 @@ export class VirtualCat {
       currentAction: config.defaultAction,
       isPlaying: false,
       lastInteraction: new Date(),
-      conversationHistory: []
+      conversationHistory: [],
     };
   }
 
@@ -139,5 +139,19 @@ export class VirtualCat {
 
   public getAvailableActions(): CatAction[] {
     return [...this.config.availableActions];
+  }
+
+  public getCatAIConfig(): CatAIConfig {
+    return this.config.catAIConfig;
+  }
+
+  public getCatSystemPrompt(): string {
+    const setting = this.config.prompt;
+    const examples = this.config.catAIConfig.LLMConfig?.SystemExamples;
+    let exampleText = "";
+    if (examples && examples.length > 0) {
+      exampleText = examples.map(item => item.trim()).join("\n\n"); // 每个示例用两个换行分隔
+    }
+    return `${setting}\n\n以下是参考的与用户的对话，请使用类似的风格进行对话\n${exampleText}`;
   }
 }

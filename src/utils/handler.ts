@@ -3,7 +3,7 @@
  * SPDX-license-identifier: BSD-3-Clause
  */
 
-import { useDispatch } from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import logger from './logger';
 import {
   setHistoryMsg,
@@ -13,6 +13,8 @@ import {
 } from '@/store/slices/room';
 import RtcClient from '@/lib/RtcClient';
 import Utils from '@/utils/utils';
+import {RootState} from "@/store";
+import {useEffect, useRef} from "react";
 
 export type AnyRecord = Record<string, any>;
 
@@ -78,6 +80,12 @@ export const MessageTypeCode = {
 
 export const useMessageHandler = () => {
   const dispatch = useDispatch();
+  const msgHistory = useSelector((state: RootState) => state.room.msgHistory);
+  const msgHistoryRef = useRef(msgHistory);
+  useEffect(() => {
+    msgHistoryRef.current = msgHistory;
+  }, [msgHistory]);
+
 
   const maps = {
     /**
@@ -121,6 +129,7 @@ export const useMessageHandler = () => {
           const isAudioEnable = RtcClient.getAudioBotEnabled();
           if (isAudioEnable) {
             dispatch(setHistoryMsg({ text: msg, user, paragraph, definite }));
+            console.log('msgHistory (latest):', msgHistoryRef.current);
           }
         }
       }

@@ -38,6 +38,39 @@ export interface ChatMessage {
   audioPath?: string;
 }
 
+export interface CatAIConfig {
+  LLMConfig?: {
+    SystemExamples?: string[];
+    WelcomeSpeechSet?: string[];
+  };
+  TTSConfig?: {
+    Provider?: string;
+    ProviderParams?: {
+      Authorization?: string;
+      Groupid?: string;
+      model?: string;
+      URL?: string;
+      stream?: boolean;
+      voice_setting?: {
+        voice_id?: string;
+        speed?: number;
+        vol?: number;
+        pitch?: number;
+      };
+      app?: {
+        AppId?: string;
+        Cluster?: string;
+        Token?: string;
+      };
+      audio?: {
+        voice_type?: string;
+        speed_ratio?: number;
+      };
+    };
+  };
+}
+
+
 export interface CatConfig {
   id: string;
   name: string;
@@ -47,4 +80,5 @@ export interface CatConfig {
   personality: CatPersonality;
   availableActions: CatAction[];
   defaultAction: string;
+  catAIConfig: CatAIConfig;
 }

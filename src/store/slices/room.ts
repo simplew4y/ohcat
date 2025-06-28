@@ -104,7 +104,7 @@ export interface RoomState {
 
 const initialState: RoomState = {
   time: -1,
-  scene: SCENE.KONG_V1,
+  scene: SCENE.KONG,
   remoteUsers: [],
   localUser: {
     publishAudio: false,

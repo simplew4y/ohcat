@@ -52,7 +52,7 @@ const ChatInterface = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const [joining, dispatchJoin] = useJoin();
-  const roomId = uuidv4();
+  const roomId = "Room123";
   const username = 'testing-user';
   const leave = useLeave();  // 顶层调用 Hook
 
@@ -191,10 +191,15 @@ const ChatInterface = () => {
       setIsTranscribing(false);
     } else {
       try {
+        if (!currentCat) {
+          return;
+        }
+        const catId = currentCat
         dispatchJoin(
             {
               roomId,
               username,
+              currentCat,
               publishAudio: true,
             },
             false
@@ -371,9 +376,9 @@ const ChatInterface = () => {
 
                   <button
                       onClick={toggleRecording}
-                      disabled={isTranscribing && joining}
+                      disabled={isTranscribing && joining || !currentCat}
                       className={`
-        w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500
+        w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg
         ${isTranscribing ? 'bg-red-500 animate-pulse ml-0' : 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg ml-3'}
       `}
                       style={{

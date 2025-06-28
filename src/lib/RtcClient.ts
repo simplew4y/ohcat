@@ -392,7 +392,6 @@ export class RTCClient {
 
     const options = {
       AppId: aigcConfig.BaseConfig.AppId,
-      BusinessId: aigcConfig.BaseConfig.BusinessId,
       RoomId: roomId,
       TaskId: userId,
       AgentConfig: {
@@ -416,7 +415,6 @@ export class RTCClient {
     if (this.audioBotEnabled || sessionStorage.getItem('audioBotEnabled')) {
       await openAPIs.StopVoiceChat({
         AppId: aigcConfig.BaseConfig.AppId,
-        BusinessId: aigcConfig.BaseConfig.BusinessId,
         RoomId: roomId,
         TaskId: userId,
       });
