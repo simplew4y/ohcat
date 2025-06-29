@@ -157,7 +157,7 @@ export class ConfigFactory {
         ASRConfig: asrConfig(aiConfig),
         InterruptMode: this.InterruptMode ? 0 : 1,
         SubtitleConfig: {
-          SubtitleMode: 0,
+          SubtitleMode: 1,
         },
       },
       AgentConfig: {

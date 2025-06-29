@@ -77,8 +77,8 @@ export interface CatConfig {
   description: string;
   avatar?: string;
   prompt?: string;
-  personality: CatPersonality;
-  availableActions: CatAction[];
-  defaultAction: string;
+  personality?: CatPersonality;
+  availableActions?: CatAction[];
+  defaultAction?: string;
   catAIConfig: CatAIConfig;
 }
