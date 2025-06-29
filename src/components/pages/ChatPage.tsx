@@ -1,68 +1,143 @@
 import {useEffect, useState} from 'react';
 import SendIcon from '../ui/SendIcon';
-import {useJoin} from "@/lib/useCommon";
 import {useCatStore} from "@/store/catStore";
 import {RootState} from "@/store";
 import {useDispatch, useSelector} from "react-redux";
 import {clearCurrentMsg, clearHistoryMsg} from "@/store/slices/room";
 import {glob} from "tinyglobby";
 
+interface Message {
+  id: number;
+  text: string;
+  sender: 'user' | 'cat';
+  timestamp: Date;
+  isVoice?: boolean; // 标记是否为语音消息
+}
+
 interface ChatPageProps {
   selectedCat: any;
   onBack: () => void;
-  onVideoCall: () => void;
+  onVideoCall?: () => void;
 }
 
-const ChatPage = ({ selectedCat, onBack, onVideoCall, isVideoCall, messages, setMessages }: ChatPageProps) => {
+const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
   const [message, setMessage] = useState('');
-  const dispatch = useDispatch();
+  const [messagesHistory, setMessagesHistory] = useState<{[catId: string]: Message[]}>({});
 
   const [isComposing, setIsComposing] = useState(false);
-  const { selectCat,currentCat } = useCatStore();
-  const sendMessage = () => {
-    if (!message.trim()) return;
+  // const { selectCat,currentCat } = useCatStore();
+  const dispatch = useDispatch();
+  
+  // 获取语音对话历史
+  const msgHistory = useSelector((state: RootState) => state.room.msgHistory);
+  const BotName = 'RobotMan_';
+  
+  // 获取当前猫咪的消息历史
+  const messages = messagesHistory[selectedCat?.id] || [];
+
+  // 当切换猫咪时清理语音历史
+  useEffect(() => {
+    if (selectedCat?.id) {
+      dispatch(clearHistoryMsg());
+    }
+  }, [selectedCat?.id, dispatch]);
+
+  // 将语音消息转换为文字消息格式，合并相邻的消息片段
+  const convertVoiceToTextMessages = (voiceHistory: any[]): Message[] => {
+    if (!voiceHistory.length) return [];
     
-    const newMessage = {
+    const mergedMessages: Message[] = [];
+    let currentMessage: any = null;
+    
+    voiceHistory.forEach(msg => {
+      if (!msg.value || !msg.value.trim()) return;
+      
+      const isBot = msg.user === BotName;
+      const sender = isBot ? 'cat' : 'user';
+      
+      // 如果是新的说话者或者消息已完成，创建新消息
+      if (!currentMessage || 
+          currentMessage.sender !== sender || 
+          (isBot && msg.definite) || 
+          (!isBot && msg.paragraph)) {
+        
+        if (currentMessage) {
+          mergedMessages.push(currentMessage);
+        }
+        
+        currentMessage = {
+          id: msg.time,
+          text: msg.value,
+          sender,
+          timestamp: new Date(msg.time),
+          isVoice: true
+        };
+      } else {
+        // 合并到当前消息
+        if (!msg.isInterrupted) {
+          currentMessage.text += msg.value;
+          currentMessage.timestamp = new Date(msg.time);
+        }
+      }
+    });
+    
+    // 添加最后一条消息
+    if (currentMessage) {
+      mergedMessages.push(currentMessage);
+    }
+    
+    return mergedMessages;
+  };
+
+  // 监听语音消息变化并更新显示
+  useEffect(() => {
+    if (msgHistory.length > 0 && selectedCat?.id) {
+      const voiceMessages = convertVoiceToTextMessages(msgHistory);
+      // 合并语音消息和文字消息，按时间排序
+      setMessagesHistory(prevHistory => {
+        const currentMessages = prevHistory[selectedCat.id] || [];
+        const textMessages = currentMessages.filter(msg => !msg.isVoice);
+        const allMessages = [...textMessages, ...voiceMessages];
+        const sortedMessages = allMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+        
+        return {
+          ...prevHistory,
+          [selectedCat.id]: sortedMessages
+        };
+      });
+    }
+  }, [msgHistory, selectedCat?.id]);
+
+  const sendMessage = () => {
+    if (!message.trim() || !selectedCat?.id) return;
+    
+    const newMessage: Message = {
       id: Date.now(),
       text: message,
       sender: 'user' as const,
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, newMessage]);
+    // 更新特定猫咪的消息历史
+    setMessagesHistory(prev => ({
+      ...prev,
+      [selectedCat.id]: [...(prev[selectedCat.id] || []), newMessage]
+    }));
     setMessage('');
     
     // 模拟猫咪回复
     setTimeout(() => {
-      const catReply = {
+      const catReply: Message = {
         id: Date.now() + 1,
         text: `${selectedCat?.name || '猫咪'}收到了你的消息喵~`,
         sender: 'cat' as const,
         timestamp: new Date()
       };
-      setMessages(prev => [...prev, catReply]);
+      setMessagesHistory(prev => ({
+        ...prev,
+        [selectedCat.id]: [...(prev[selectedCat.id] || []), catReply]
+      }));
     }, 1000);
-  };
-
-  const [joining, dispatchJoin] = useJoin();
-  const toggleRecording = () => {
-    onVideoCall();
-    try {
-      if (!currentCat) {
-        return;
-      }
-      dispatchJoin(
-          {
-            roomId: "Room123",
-            username: "testing-user",
-            currentCat: currentCat,
-            publishAudio: true,
-          },
-          false
-      );
-    } catch (err) {
-      console.error('麦克风权限被拒绝或发生错误:', err);
-    }
   };
 
   if (!selectedCat) return null;
@@ -107,7 +182,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall, isVideoCall, messages, set
             <p className="text-white/60 text-base">发送第一条消息开始对话</p>
           </div>
         ) : (
-          messages.map((msg) => (
+          messages.map((msg: Message) => (
             <div key={msg.id} className={`flex items-end gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.sender === 'cat' && (
                 <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-white/20 to-white/10 flex-shrink-0 shadow-lg">
@@ -160,15 +235,19 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall, isVideoCall, messages, set
               disabled={!message.trim()}
               className="px-8 py-4 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 hover:from-blue-600 hover:via-blue-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 text-white rounded-lg transition-all duration-300 shadow-xl hover:shadow-blue-500/30 font-semibold text-base transform hover:scale-105 hover:-translate-y-0.5 active:scale-95"
             >
-              <SendIcon className="w-9 h-9" />
+              <SendIcon className="w-7 h-7" />
             </button>
 
             {/* 视频电话按钮 */}
             <button
-              onClick={toggleRecording}
+              onClick={() => {
+                if (onVideoCall) {
+                  onVideoCall();
+                }
+              }}
               className="p-4 bg-gradient-to-br from-green-500/80 to-emerald-600/80 hover:from-green-500 hover:to-emerald-600 text-white rounded-lg transition-all duration-300 shadow-lg hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm"
             >
-              <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </button>

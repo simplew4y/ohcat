@@ -100,9 +100,12 @@ const HomePage = ({ onCatSelect }: HomePageProps) => {
       <div className="h-full">
         <div className="max-w-6xl mx-auto">
           {/* 标题 */}
-          <div className="mb-12">
-            <h1 className="text-black text-xl font-medium">OHCAT星球</h1>
+          <div className="mb-16">
+            <h1 className="text-white text-xl font-medium">OHCAT星球</h1>
           </div>
+          
+          {/* 间距容器 */}
+          <div className="h-6"></div>
           
           {/* 卡片网格容器 */}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">

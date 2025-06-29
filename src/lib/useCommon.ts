@@ -185,10 +185,11 @@ export const useJoin = (): [
 
     const isSupported = await VERTC.isSupported();
     if (!isSupported) {
-      Modal.error({
-        title: '不支持 RTC',
-        content: '您的浏览器可能不支持 RTC 功能，请尝试更换浏览器或升级浏览器后再重试。',
-      });
+      // Modal.error({
+      //   title: '不支持 RTC',
+      //   content: '您的浏览器可能不支持 RTC 功能，请尝试更换浏览器或升级浏览器后再重试。',
+      // });
+      console.error('浏览器不支持 RTC 功能');
       return;
     }
 
@@ -197,10 +198,12 @@ export const useJoin = (): [
     const token = await RtcClient.requestToken(roomId, username);
 
     if (!token) {
-      Modal.error({
-        title: '获取 token 失败',
-        content: '请检查网络连接或稍后再试。',
-      });
+      // Modal.error({
+      //   title: '获取 token 失败',
+      //   content: '请检查网络连接或稍后再试。',
+      // });
+      console.error('获取 token 失败，请检查网络连接或后端服务。');
+      setJoining(false);
       return;
     }
 
@@ -268,9 +271,9 @@ export const useLeave = () => {
 
   return async function () {
     await Promise.all([
-      RtcClient.stopAudioCapture,
-      RtcClient.stopScreenCapture,
-      RtcClient.stopVideoCapture,
+      RtcClient.stopAudioCapture(),
+      RtcClient.stopScreenCapture(),
+      RtcClient.stopVideoCapture(),
     ]);
     await RtcClient.leaveRoom();
     dispatch(localLeaveRoom());

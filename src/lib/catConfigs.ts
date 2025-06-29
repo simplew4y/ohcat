@@ -270,17 +270,18 @@ export const catConfigs: CatConfig[] = [
 export function getCatConfigById(id: string): CatConfig {
   const found = catConfigs.find(config => config.id === id);
   if (found) {
-
     const match = profile.find(item => item.id === id);
-
-    found.prompt=match.prompt
-    if (!found.catAIConfig.LLMConfig) {
-      found.catAIConfig.LLMConfig = {};
+    
+    if (match) {
+      found.prompt = match.prompt;
+      if (!found.catAIConfig.LLMConfig) {
+        found.catAIConfig.LLMConfig = {};
+      }
+      found.catAIConfig.LLMConfig.WelcomeSpeechSet = match.welcome_speech;
+      found.catAIConfig.LLMConfig.SystemExamples = match.system_example.map(item =>
+          `"user": ${JSON.stringify(item.user)}, "assistant": ${JSON.stringify(item.assistant)}`
+      );
     }
-    found.catAIConfig.LLMConfig.WelcomeSpeechSet = match.welcome_speech
-    found.catAIConfig.LLMConfig.SystemExamples = match.system_example.map(item =>
-        `"user": ${JSON.stringify(item.user)}, "assistant": ${JSON.stringify(item.assistant)}`
-    );
     return found;
   }
   // 返回一个默认的 CatConfig 对象，字段根据你的 CatConfig 类型定义填写

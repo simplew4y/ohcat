@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import {useLeave} from "@/lib/useCommon";
+import { useState, useEffect } from 'react';
+import {useLeave, useJoin} from "@/lib/useCommon";
+import {useCatStore} from "@/store/catStore";
 
 interface VideoChatPageProps {
   selectedCat: any;
@@ -8,10 +9,48 @@ interface VideoChatPageProps {
 
 const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
-    const leave = useLeave();
+  const leave = useLeave();
+  const [joining, join] = useJoin();
+  const { selectCat } = useCatStore();
   
   if (!selectedCat) return null;
+
+  // 启动语音通话
+  useEffect(() => {
+    const startVoiceCall = async () => {
+      if (isConnected || isConnecting) return;
+      
+      setIsConnecting(true);
+      try {
+        // 设置当前猫咪到store中
+        selectCat(selectedCat.id);
+        
+        // 生成随机房间ID和用户名
+        const roomId = `room_${selectedCat.id}_${Date.now()}`;
+        const username = `user_${Date.now()}`;
+        
+        // 加入RTC房间并启动语音服务
+        await join({
+          username,
+          roomId,
+          currentCat: selectedCat,
+          publishAudio: true
+        }, false);
+        
+        setIsConnected(true);
+        console.log('语音通话已启动');
+      } catch (error) {
+        console.error('启动语音通话失败:', error);
+      } finally {
+        setIsConnecting(false);
+      }
+    };
+
+    startVoiceCall();
+  }, [selectedCat, join, isConnected, isConnecting, selectCat]);
 
   // 根据猫咪角色和状态获取对应的视频文件
   const getVideoPath = (catName: string, speaking: boolean) => {
@@ -20,7 +59,15 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
         idle: '/videos/kongkong/idle.mp4',
         speaking: '/videos/kongkong/speaking.mp4'
       },
+      'kongkong': { 
+        idle: '/videos/kongkong/idle.mp4',
+        speaking: '/videos/kongkong/speaking.mp4'
+      },
       '奥格尔': { 
+        idle: '/videos/aoger/idle.mp4',
+        speaking: '/videos/aoger/speaking.mp4'
+      },
+      'ogle': { 
         idle: '/videos/aoger/idle.mp4',
         speaking: '/videos/aoger/speaking.mp4'
       },
@@ -28,32 +75,57 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
         idle: '/videos/aojia/idle.mp4',
         speaking: '/videos/aojia/speaking.mp4'
       },
+      'oga': { 
+        idle: '/videos/aojia/idle.mp4',
+        speaking: '/videos/aojia/speaking.mp4'
+      },
       '绵绵': { 
-        idle: '/videos/cats/mianmian_idle.mp4',
-        speaking: '/videos/cats/mianmianspeaking.mp4'
+        idle: '/videos/roasty/idle.mp4',
+        speaking: '/videos/roasty/angry.mp4'
+      },
+      'mianmian': { 
+        idle: '/videos/roasty/idle.mp4',
+        speaking: '/videos/roasty/angry.mp4'
       },
       '墨松': { 
-        idle: '/videos/cats/mosongidle.mp4',
-        speaking: '/videos/cats/mosongspeaking.mp4'
+        idle: '/videos/roasty/idle.mp4',
+        speaking: '/videos/roasty/angry.mp4'
       },
-      '招财猫': {   
-        idle: '/videos/cats/zhaocaimaoidle.mp4',
-        speaking: '/videos/cats/zhaocaimaospeaking.mp4'
+      'pine': { 
+        idle: '/videos/roasty/idle.mp4',
+        speaking: '/videos/roasty/angry.mp4'
+      },
+      'Roasty': { 
+        idle: '/videos/roasty/idle.mp4',
+        speaking: '/videos/roasty/angry.mp4'
+      },
+      'roasty': { 
+        idle: '/videos/roasty/idle.mp4',
+        speaking: '/videos/roasty/angry.mp4'
       }
     };
     
     const catVideos = videoMap[catName] || { 
-      idle: '/videos/cats/default_idle.mp4',
-      speaking: '/videos/cats/default_speaking.mp4'
+      idle: '/videos/roasty/idle.mp4',
+      speaking: '/videos/roasty/angry.mp4'
     };
     
     return speaking ? catVideos.speaking : catVideos.idle;
   };
 
-  const endVideoCall = () => {
+  const endVideoCall = async () => {
+    try {
+      if (isConnected) {
+        await leave();
+        setIsConnected(false);
+        console.log('语音通话已结束');
+      }
+    } catch (error) {
+      console.error('结束语音通话失败:', error);
+    } finally {
       onBack();
-      leave();
     }
+  }
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
@@ -82,6 +154,17 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
           <source src={getVideoPath(selectedCat.name, isSpeaking)} type="video/mp4" />
           您的浏览器不支持视频播放。
         </video>
+      </div>
+
+      {/* 连接状态指示器 - 左上角 */}
+      <div className="absolute top-6 left-6 z-50">
+        <div className="px-4 py-2 bg-black/30 text-white rounded-lg backdrop-blur-sm text-sm font-medium">
+          {isConnecting ? '连接中...' : isConnected ? '语音已连接' : '连接失败'}
+          <div className={`w-2 h-2 rounded-full ml-2 inline-block ${
+            isConnecting ? 'bg-yellow-500 animate-pulse' : 
+            isConnected ? 'bg-green-500' : 'bg-red-500'
+          }`} />
+        </div>
       </div>
 
       {/* 测试开关 - 右上角 */}

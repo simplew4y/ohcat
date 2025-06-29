@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = "sk-iXVMg4qwUdjHYPtN3fBaE77d03C54a11Ab97D8BeB3845d5c";
     if (!apiKey) {
       return NextResponse.json(
         { error: 'API key not configured' },
