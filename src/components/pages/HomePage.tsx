@@ -5,37 +5,37 @@ interface HomePageProps {
 const HomePage = ({ onCatSelect }: HomePageProps) => {
   const cards = [
     { 
-      id: 1, 
+      id: "kongkong",
       avatar: '/images/cats/kongkong.png', 
       name: '空空', 
       description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
     },
     { 
-      id: 2, 
+      id: "pine",
       avatar: '/images/cats/mosong.png', 
       name: '墨松', 
       description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
     },
+    {
+      id: "roasty",
+      avatar: '/images/cats/mosong.png',
+      name: '罗西',
+      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。'
+    },
     { 
-      id: 3, 
+      id: "ogle",
       avatar: '/images/cats/aoger.png', 
       name: '奥格尔', 
       description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
     },
     { 
-      id: 4, 
+      id: "mianmian",
       avatar: '/images/cats/mianmian.png', 
       name: '绵绵', 
       description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
     },
     { 
-      id: 5, 
-      avatar: '/images/cats/zhaocaimao.png', 
-      name: '招财猫', 
-      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
-    },
-    { 
-      id: 6, 
+      id: "oga",
       avatar: '/images/cats/aojia.png', 
       name: '奥迦', 
       description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import {useLeave} from "@/lib/useCommon";
 
 interface VideoChatPageProps {
   selectedCat: any;
@@ -7,6 +8,8 @@ interface VideoChatPageProps {
 
 const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+    const leave = useLeave();
   
   if (!selectedCat) return null;
 
@@ -46,6 +49,11 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
     
     return speaking ? catVideos.speaking : catVideos.idle;
   };
+
+  const endVideoCall = () => {
+      onBack();
+      leave();
+    }
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden">
@@ -89,7 +97,7 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
       {/* 挂断按钮 - 底部中央 */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40">
         <button 
-          onClick={onBack}
+          onClick={endVideoCall}
           className="p-6 bg-black/30 hover:bg-black/50 rounded-full transition-all duration-300 backdrop-blur-sm"
         >
           <svg className="w-16 h-16" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg">

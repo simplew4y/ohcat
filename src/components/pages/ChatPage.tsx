@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import SendIcon from '../ui/SendIcon';
+import {useJoin} from "@/lib/useCommon";
+import {useCatStore} from "@/store/catStore";
 
 interface ChatPageProps {
   selectedCat: any;
@@ -12,7 +14,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
   const [messages, setMessages] = useState<Array<{id: number, text: string, sender: 'user' | 'cat', timestamp: Date}>>([]);
 
   const [isComposing, setIsComposing] = useState(false);
-
+  const { selectCat,currentCat } = useCatStore();
   const sendMessage = () => {
     if (!message.trim()) return;
     
@@ -36,6 +38,27 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
       };
       setMessages(prev => [...prev, catReply]);
     }, 1000);
+  };
+
+  const [joining, dispatchJoin] = useJoin();
+  const toggleRecording = () => {
+    onVideoCall();
+    try {
+      if (!currentCat) {
+        return;
+      }
+      dispatchJoin(
+          {
+            roomId: "Room123",
+            username: "testing-user",
+            currentCat: currentCat,
+            publishAudio: true,
+          },
+          false
+      );
+    } catch (err) {
+      console.error('麦克风权限被拒绝或发生错误:', err);
+    }
   };
 
   if (!selectedCat) return null;
@@ -138,7 +161,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
 
             {/* 视频电话按钮 */}
             <button 
-              onClick={onVideoCall}
+              onClick={toggleRecording}
               className="p-4 bg-gradient-to-br from-green-500/80 to-emerald-600/80 hover:from-green-500 hover:to-emerald-600 text-white rounded-lg transition-all duration-300 shadow-lg hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm"
             >
               <svg className="w-9 h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">

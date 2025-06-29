@@ -273,8 +273,6 @@ export const useLeave = () => {
       RtcClient.stopVideoCapture,
     ]);
     await RtcClient.leaveRoom();
-    dispatch(clearHistoryMsg());
-    dispatch(clearCurrentMsg());
     dispatch(localLeaveRoom());
     dispatch(updateAIGCState({ isAIGCEnable: false }));
   };

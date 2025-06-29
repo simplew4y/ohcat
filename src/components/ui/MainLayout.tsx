@@ -1,7 +1,8 @@
 'use client';
 
-import { ReactNode, useState } from 'react';
-import { Provider } from 'react-redux';
+import React from 'react'
+import {ReactNode, useEffect, useState} from 'react';
+import {Provider, useDispatch} from 'react-redux';
 import store from "@/store";
 import HomePage from '../pages/HomePage';
 import GamePage from '../pages/GamePage';
@@ -9,6 +10,7 @@ import ChatPage from '../pages/ChatPage';
 import CarePage from '../pages/CarePage';
 import SettingsPage from '../pages/SettingsPage';
 import VideoChatPage from '../pages/VideoChatPage';
+import {useCatStore} from "@/store/catStore";
 
 interface MainLayoutProps {
   children?: ReactNode;
@@ -18,6 +20,12 @@ const MainLayout = ({}: MainLayoutProps) => {
   const [activeTab, setActiveTab] = useState(0);
   const [selectedCat, setSelectedCat] = useState<any>(null);
   const [isVideoCall, setIsVideoCall] = useState(false);
+  const { selectCat,currentCat } = useCatStore();
+  useEffect(() => {
+    if (selectedCat?.id) {
+      selectCat(selectedCat.id);
+    }
+  }, [selectedCat?.id]);
 
   const bottomTabs = [
     { icon: '🏠' },
@@ -26,6 +34,7 @@ const MainLayout = ({}: MainLayoutProps) => {
     { icon: '❤️' },
     { icon: '⚙️' }
   ];
+
 
   return (
     <Provider store={store}>
