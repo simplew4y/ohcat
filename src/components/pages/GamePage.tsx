@@ -5,12 +5,12 @@ const GamePage = () => {
 
   // 示例市集商品数据
   const marketItems = [
-    { id: 1, image: '/images/goods/image.png' },
-    { id: 2, image: '/images/goods/image.png' },
-    { id: 3, image: '/images/goods/image.png' },
-    { id: 4, image: '/images/goods/image.png' },
-    { id: 5, image: '/images/goods/image.png' },
-    { id: 6, image: '/images/goods/image.png' },
+    { id: 1, image: '/images/goods/image.png', name: '暗夜精灵', price: 500, height: 'h-52' },
+    { id: 2, image: '/images/goods/lingwa.png', name: '灵蛙', price: 600, height: 'h-52' },
+    { id: 3, image: '/images/goods/maobao.png', name: '猫包', price: 10000, height: 'h-56' },
+    { id: 4, image: '/images/goods/kongkonghuaban.png', name: '空空画板', price: 20000, height: 'h-56' },
+    { id: 5, image: '/images/goods/feipan.png', name: '飞盘', price: 1000 , height: 'h-52' },
+    { id: 6, image: '/images/goods/beizi.png', name: '喵星杯子', price: 3000, height: 'h-52' },
   ];
 
   return (
@@ -95,22 +95,22 @@ const GamePage = () => {
           {/* Spacer Element */}
           <div className="h-4"></div>
 
-          {/* 商品卡片网格 */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* 商品卡片网格 - 两列瀑布流布局 */}
+          <div className="grid grid-cols-2 gap-8">
             {marketItems.map((item) => (
               <div key={item.id} className="flex flex-col gap-4">
                 <div
-                  className="liquidGlass-wrapper card h-52 cursor-pointer hover:scale-105 transition-transform duration-300 overflow-hidden"
+                  className={`liquidGlass-wrapper card ${item.height} cursor-pointer hover:scale-105 transition-transform duration-300 overflow-hidden flex items-center justify-center p-4`}
                 >
                   <img
                     src={item.image}
                     alt={`Goods ${item.id}`}
-                    className="w-full h-full object-cover"
+                    className="w-32 h-32 object-cover rounded-lg"
                   />
                 </div>
                 <div className="flex justify-between items-center px-4">
-                  <span className="text-white font-semibold text-sm">暗夜精灵</span>
-                  <span className="text-white font-bold text-sm">500喵喵币</span>
+                  <span className="text-white font-semibold text-sm">{item.name}</span>
+                  <span className="text-white font-bold text-sm">{item.price}喵喵币</span>
                 </div>
               </div>
             ))}

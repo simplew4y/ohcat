@@ -6,12 +6,10 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import VERTC, { MediaType } from '@volcengine/rtc';
-import { Modal } from '@arco-design/web-react';
 import Utils from '@/utils/utils';
 import RtcClient from '@/lib/RtcClient';
 import {
   clearCurrentMsg,
-  clearHistoryMsg,
   localJoinRoom,
   localLeaveRoom,
   updateAIGCState,
@@ -159,7 +157,7 @@ export const useJoin = (): [
 
   const dispatch = useDispatch();
 
-  const { switchCamera, switchMic } = useDeviceState();
+  const { switchMic } = useDeviceState();
   const [joining, setJoining] = useState(false);
   const listeners = useRtcListeners();
 

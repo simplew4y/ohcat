@@ -1,10 +1,8 @@
 import {useEffect, useState} from 'react';
 import SendIcon from '../ui/SendIcon';
-import {useCatStore} from "@/store/catStore";
 import {RootState} from "@/store";
 import {useDispatch, useSelector} from "react-redux";
-import {clearCurrentMsg, clearHistoryMsg} from "@/store/slices/room";
-import {glob} from "tinyglobby";
+import {clearHistoryMsg} from "@/store/slices/room";
 
 interface Message {
   id: number;
@@ -144,6 +142,58 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
 
   return (
     <div className="h-full flex flex-col bg-transparent">
+      {/* SVG滤镜定义 - 复制自HomePage */}
+      <svg style={{display: 'none'}}>
+        <filter
+          id="glass-distortion"
+          x="0%"
+          y="0%"
+          width="100%"
+          height="100%"
+          filterUnits="objectBoundingBox"
+        >
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.01 0.01"
+            numOctaves="1"
+            seed="5"
+            result="turbulence"
+          />
+          <feComponentTransfer in="turbulence" result="mapped">
+            <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+            <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+            <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+          </feComponentTransfer>
+          <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+          <feSpecularLighting
+            in="softMap"
+            surfaceScale="5"
+            specularConstant="1"
+            specularExponent="100"
+            lightingColor="white"
+            result="specLight"
+          >
+            <fePointLight x="-200" y="-200" z="300" />
+          </feSpecularLighting>
+          <feComposite
+            in="specLight"
+            operator="arithmetic"
+            k1="0"
+            k2="1"
+            k3="1"
+            k4="0"
+            result="litImage"
+          />
+          <feDisplacementMap
+            in="SourceGraphic"
+            in2="softMap"
+            scale="150"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+      </svg>
+
       {/* 顶部标题栏 */}
       <div className="flex items-center px-6 py-4">
         <button
@@ -198,7 +248,12 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
                 </div>
               )}
               <div className={`message-bubble ${msg.sender === 'user' ? 'user' : 'cat'}`}>
-                <p className="text-base leading-relaxed break-words font-medium">{msg.text}</p>
+                <div className="message-bubble-glass-effect"></div>
+                <div className="message-bubble-glass-tint"></div>
+                <div className="message-bubble-glass-shine"></div>
+                <div className="message-bubble-content">
+                  <p className="text-base leading-relaxed break-words font-medium">{msg.text}</p>
+                </div>
               </div>
             </div>
           ))
@@ -212,30 +267,40 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
           <div className="flex items-center gap-4">
             {/* 输入框容器 */}
             <div className="flex-1 relative">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-                onCompositionStart={() => setIsComposing(true)}
-                onCompositionEnd={() => setIsComposing(false)}
-                placeholder="输入消息..."
-                className="chat-input"
-              />
+              <div className="chat-input-wrapper">
+                <div className="chat-input-glass-effect"></div>
+                <div className="chat-input-glass-tint"></div>
+                <div className="chat-input-glass-shine"></div>
+                <input
+                  type="text"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                  onCompositionStart={() => setIsComposing(true)}
+                  onCompositionEnd={() => setIsComposing(false)}
+                  placeholder="输入消息..."
+                  className="chat-input"
+                />
+              </div>
             </div>
 
             {/* 发送按钮 */}
             <button
               onClick={sendMessage}
               disabled={!message.trim()}
-              className="px-8 py-4 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 hover:from-blue-600 hover:via-blue-700 hover:to-purple-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 text-white rounded-lg transition-all duration-300 shadow-xl hover:shadow-blue-500/30 font-semibold text-base transform hover:scale-105 hover:-translate-y-0.5 active:scale-95"
+              className="glass-button px-8 py-4 rounded-lg"
             >
-              <SendIcon className="w-7 h-7" />
+              <div className="glass-button-glass-effect"></div>
+              <div className="glass-button-glass-tint"></div>
+              <div className="glass-button-glass-shine"></div>
+              <div className="glass-button-content">
+                <SendIcon className="w-12 h-12" />
+              </div>
             </button>
 
             {/* 视频电话按钮 */}
@@ -245,11 +310,16 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
                   onVideoCall();
                 }
               }}
-              className="p-4 bg-gradient-to-br from-green-500/80 to-emerald-600/80 hover:from-green-500 hover:to-emerald-600 text-white rounded-lg transition-all duration-300 shadow-lg hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm"
+              className="glass-button p-4 rounded-lg"
             >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
+              <div className="glass-button-glass-effect"></div>
+              <div className="glass-button-glass-tint"></div>
+              <div className="glass-button-glass-shine"></div>
+              <div className="glass-button-content">
+                <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
             </button>
           </div>
         </div>

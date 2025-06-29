@@ -14,31 +14,31 @@ const HomePage = ({ onCatSelect }: HomePageProps) => {
       id: "pine",
       avatar: '/images/cats/mosong.png', 
       name: '墨松', 
-      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
+      description: '心语松林的温柔倾听者，治愈受伤心灵。' 
     },
     {
       id: "roasty",
-      avatar: '/images/cats/mosong.png',
+      avatar: '/images/cats/roasty.png',
       name: '罗西',
-      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。'
+      description: '毒舌剧场的犀利明星，吐槽一针见血但暖心治愈。'
     },
     { 
       id: "ogle",
       avatar: '/images/cats/aoger.png', 
       name: '奥格尔', 
-      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
+      description: '星河神殿的神秘占星师，为迷茫灵魂指引方向。' 
     },
     { 
       id: "mianmian",
       avatar: '/images/cats/mianmian.png', 
       name: '绵绵', 
-      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
+      description: '云绒巢穴的温柔守护者，陪伴失眠者安然入梦。' 
     },
     { 
       id: "oga",
       avatar: '/images/cats/aojia.png', 
       name: '奥迦', 
-      description: '曾经是战争机器，现在是和平使者。幽默，外向，擅长街舞。' 
+      description: '灯海小镇的心灵治愈师，用温暖光波疗愈创伤。' 
     },
   ];
 
@@ -100,7 +100,7 @@ const HomePage = ({ onCatSelect }: HomePageProps) => {
       <div className="h-full">
         <div className="max-w-6xl mx-auto">
           {/* 标题 */}
-          <div className="mb-16">
+          <div className="mb-16 pl-8">
             <h1 className="text-white text-xl font-medium">OHCAT星球</h1>
           </div>
           

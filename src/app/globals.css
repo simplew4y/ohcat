@@ -223,29 +223,62 @@ html, body, #__next {
 }
 
 .message-bubble {
+    position: relative;
     box-sizing: border-box;
     padding: 0.75rem 1.25rem;
     margin: 0.5rem 0;
     min-height: 2.25rem;
     width: fit-content;
     max-width: 75%;
-    box-shadow: 
-        0 0 2rem rgba(0, 0, 0, 0.075),
-        0rem 1rem 1rem -1rem rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .message-bubble.user {
     margin-left: auto;
     border-radius: 1.125rem 1.125rem 0 1.125rem;
-    background-color: #333;
-    color: white;
 }
 
 .message-bubble.cat {
     margin-right: auto;
     border-radius: 1.125rem 1.125rem 1.125rem 0;
-    background-color: #FFF;
-    color: #333;
+}
+
+/* Liquid glass effect for message bubbles */
+.message-bubble-glass-effect {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    backdrop-filter: blur(3px);
+    filter: url(#glass-distortion);
+    overflow: hidden;
+    isolation: isolate;
+    border-radius: inherit;
+}
+
+.message-bubble-glass-tint {
+    z-index: 1;
+    position: absolute;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: inherit;
+}
+
+.message-bubble-glass-shine {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    overflow: hidden;
+    border-radius: inherit;
+    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.message-bubble-content {
+    position: relative;
+    z-index: 3;
+    color: black;
+    font-weight: 600;
 }
 
 .message-time {
@@ -258,29 +291,124 @@ html, body, #__next {
     margin: 1rem auto;
 }
 
+/* Chat input with liquid glass effect */
+.chat-input-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.125rem;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.chat-input-glass-effect {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  backdrop-filter: blur(3px);
+  filter: url(#glass-distortion);
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: inherit;
+}
+
+.chat-input-glass-tint {
+  z-index: 1;
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: inherit;
+}
+
+.chat-input-glass-shine {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+    inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+}
+
 .chat-input {
+  position: relative;
+  z-index: 3;
   border: none;
   box-sizing: border-box;
   width: 100%;
   padding: 1rem 1.5rem;
   border-radius: 1.125rem;
-  background-color: #FFF;
-  color: #333;
+  background: transparent;
+  color: black;
   font-size: 1rem;
-  box-shadow: 
-    0 0 2rem rgba(0, 0, 0, 0.075),
-    0rem 1rem 1rem -1rem rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s ease-in-out;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
 }
 
 .chat-input::placeholder {
-  color: #999;
+  color: rgba(0, 0, 0, 0.6);
+  font-weight: 500;
 }
 
 .chat-input:focus {
   outline: none;
-  box-shadow: 
-    0 0 2rem rgba(0, 0, 0, 0.1),
-    0rem 1rem 1rem -1rem rgba(0, 0, 0, 0.15),
-    0 0 0 2px #555;
+}
+
+/* Button with liquid glass effect */
+.glass-button {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  cursor: pointer;
+}
+
+.glass-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.glass-button-glass-effect {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  backdrop-filter: blur(3px);
+  filter: url(#glass-distortion);
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: inherit;
+}
+
+.glass-button-glass-tint {
+  z-index: 1;
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: inherit;
+}
+
+.glass-button-glass-shine {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  border-radius: inherit;
+  box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
+    inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+}
+
+.glass-button-content {
+  position: relative;
+  z-index: 3;
+  color: black;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.glass-button:hover {
+  transform: scale(1.05) translateY(-2px);
+}
+
+.glass-button:active {
+  transform: scale(0.95);
 }
