@@ -233,7 +233,7 @@ export const catConfigs: CatConfig[] = [
           URL: "https://api.minimax.chat/v1/t2a_v2",
           stream: false,
           voice_setting: {
-            voice_id: "Chinese (Mandarin)_Warm_Bestie",
+            voice_id: "ttv-voice-2025062921341225-6ptl0afx",
             speed: 1.0,
             vol: 1.0,
             pitch: 1.0

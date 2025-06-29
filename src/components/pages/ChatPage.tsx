@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import {useEffect, useState} from 'react';
 import SendIcon from '../ui/SendIcon';
 import {useJoin} from "@/lib/useCommon";
 import {useCatStore} from "@/store/catStore";
+import {RootState} from "@/store";
+import {useDispatch, useSelector} from "react-redux";
+import {clearCurrentMsg, clearHistoryMsg} from "@/store/slices/room";
+import {glob} from "tinyglobby";
 
 interface ChatPageProps {
   selectedCat: any;
@@ -9,9 +13,9 @@ interface ChatPageProps {
   onVideoCall: () => void;
 }
 
-const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
+const ChatPage = ({ selectedCat, onBack, onVideoCall, isVideoCall, messages, setMessages }: ChatPageProps) => {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Array<{id: number, text: string, sender: 'user' | 'cat', timestamp: Date}>>([]);
+  const dispatch = useDispatch();
 
   const [isComposing, setIsComposing] = useState(false);
   const { selectCat,currentCat } = useCatStore();
@@ -67,7 +71,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
     <div className="h-full flex flex-col bg-transparent">
       {/* 顶部标题栏 */}
       <div className="flex items-center px-6 py-4">
-        <button 
+        <button
           onClick={onBack}
           className="mr-5 p-3 rounded-2xl hover:bg-white/15 text-white hover:text-white/90 transition-all duration-300 hover:scale-110"
         >
@@ -77,8 +81,8 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
         </button>
         <div className="flex items-center">
           <div className="w-12 h-12 rounded-2xl overflow-hidden mr-4">
-            <img 
-              src={selectedCat.avatar} 
+            <img
+              src={selectedCat.avatar}
               alt={selectedCat.name}
               className="w-full h-full object-cover"
               onError={(e) => {
@@ -107,8 +111,8 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
             <div key={msg.id} className={`flex items-end gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.sender === 'cat' && (
                 <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-white/20 to-white/10 flex-shrink-0 shadow-lg">
-                  <img 
-                    src={selectedCat.avatar} 
+                  <img
+                    src={selectedCat.avatar}
                     alt={selectedCat.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -149,7 +153,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
                 className="chat-input"
               />
             </div>
-            
+
             {/* 发送按钮 */}
             <button
               onClick={sendMessage}
@@ -160,7 +164,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
             </button>
 
             {/* 视频电话按钮 */}
-            <button 
+            <button
               onClick={toggleRecording}
               className="p-4 bg-gradient-to-br from-green-500/80 to-emerald-600/80 hover:from-green-500 hover:to-emerald-600 text-white rounded-lg transition-all duration-300 shadow-lg hover:shadow-green-500/30 transform hover:scale-105 hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm"
             >
