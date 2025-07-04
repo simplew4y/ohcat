@@ -3,6 +3,7 @@ import SendIcon from '../ui/SendIcon';
 import {RootState} from "@/store";
 import {useDispatch, useSelector} from "react-redux";
 import {clearHistoryMsg} from "@/store/slices/room";
+import { CatConfig } from '@/types/cat';
 
 interface Message {
   id: number;
@@ -13,7 +14,7 @@ interface Message {
 }
 
 interface ChatPageProps {
-  selectedCat: any;
+  selectedCat: CatConfig | null;
   onBack: () => void;
   onVideoCall?: () => void;
 }
@@ -31,7 +32,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
   const BotName = 'RobotMan_';
   
   // 获取当前猫咪的消息历史
-  const messages = messagesHistory[selectedCat?.id] || [];
+  const messages = selectedCat?.id ? messagesHistory[selectedCat.id] || [] : [];
 
   // 当切换猫咪时清理语音历史
   useEffect(() => {
@@ -41,11 +42,11 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
   }, [selectedCat?.id, dispatch]);
 
   // 将语音消息转换为文字消息格式，合并相邻的消息片段
-  const convertVoiceToTextMessages = (voiceHistory: any[]): Message[] => {
+  const convertVoiceToTextMessages = (voiceHistory: { user: string; value: string; time: number; definite?: boolean; paragraph?: boolean; isInterrupted?: boolean }[]): Message[] => {
     if (!voiceHistory.length) return [];
     
     const mergedMessages: Message[] = [];
-    let currentMessage: any = null;
+    let currentMessage: { id: number; text: string; sender: 'user' | 'cat'; timestamp: Date; isVoice: boolean } | null = null;
     
     voiceHistory.forEach(msg => {
       if (!msg.value || !msg.value.trim()) return;
@@ -206,6 +207,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
         </button>
         <div className="flex items-center">
           <div className="w-12 h-12 rounded-2xl overflow-hidden mr-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={selectedCat.avatar}
               alt={selectedCat.name}
@@ -236,6 +238,7 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
             <div key={msg.id} className={`flex items-end gap-4 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
               {msg.sender === 'cat' && (
                 <div className="w-10 h-10 rounded-2xl overflow-hidden bg-gradient-to-br from-white/20 to-white/10 flex-shrink-0 shadow-lg">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={selectedCat.avatar}
                     alt={selectedCat.name}

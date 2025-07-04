@@ -3,9 +3,11 @@ import {useLeave, useJoin} from "@/lib/useCommon";
 import {useCatStore} from "@/store/catStore";
 import {useSelector} from "react-redux";
 import {RootState} from "@/store";
+import { CatConfig } from '@/types/cat';
+import { VirtualCat } from '@/lib/cat';
 
 interface VideoChatPageProps {
-  selectedCat: any;
+  selectedCat: CatConfig | null;
   onBack: () => void;
 }
 
@@ -23,10 +25,10 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
   // 根据语音状态确定视频状态：用户说话时显示idle，AI说话时显示speaking
   const isSpeaking = isAITalking;
   
-  if (!selectedCat) return null;
-
   // 启动语音通话
   useEffect(() => {
+    if (!selectedCat) return;
+    
     const startVoiceCall = async () => {
       if (isConnected || isConnecting) return;
       
@@ -39,11 +41,14 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
         const roomId = `room_${selectedCat.id}_${Date.now()}`;
         const username = `user_${Date.now()}`;
         
+        // 创建 VirtualCat 实例
+        const virtualCat = new VirtualCat(selectedCat);
+        
         // 加入RTC房间并启动语音服务
         await join({
           username,
           roomId,
-          currentCat: selectedCat,
+          currentCat: virtualCat,
           publishAudio: true
         }, false);
         
@@ -58,6 +63,8 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
 
     startVoiceCall();
   }, [selectedCat, join, isConnected, isConnecting, selectCat]);
+
+  if (!selectedCat) return null;
 
   // 根据猫咪角色和状态获取对应的视频文件
   const getVideoPath = (catName: string, speaking: boolean) => {
@@ -128,7 +135,7 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
             const target = e.target as HTMLVideoElement;
             target.style.display = 'none';
             const imgElement = document.createElement('img');
-            imgElement.src = selectedCat.avatar;
+            imgElement.src = selectedCat.avatar || '/default-avatar.png';
             imgElement.className = 'w-full h-full object-cover';
             imgElement.alt = selectedCat.name;
             target.parentElement?.appendChild(imgElement);
