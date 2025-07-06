@@ -148,7 +148,7 @@ const HomePage = ({ onCatSelect }: HomePageProps) => {
                     <h3 className="text-black text-lg font-semibold mb-2">{card.name}</h3>
                     
                     {/* 描述 */}
-                    <p className="text-black text-sm leading-relaxed opacity-80">{card.description}</p>
+                    <p className="text-black text-sm leading-tight opacity-80">{card.description}</p>
                   </div>
                 </div>
               </div>
