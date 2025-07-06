@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {useLeave, useJoin} from "@/lib/useCommon";
 import {useCatStore} from "@/store/catStore";
 import {useSelector} from "react-redux";
@@ -12,6 +12,8 @@ interface VideoChatPageProps {
 const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentVideoSrc, setCurrentVideoSrc] = useState('');
 
   const leave = useLeave();
   const [, join] = useJoin();
@@ -96,6 +98,20 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
     return speaking ? catVideos.speaking : catVideos.idle;
   };
 
+  // 视频切换逻辑 - 动态切换src而不是重新创建video元素
+  useEffect(() => {
+    const newVideoSrc = getVideoPath(selectedCat.name, isSpeaking);
+    if (currentVideoSrc !== newVideoSrc) {
+      setCurrentVideoSrc(newVideoSrc);
+      
+      const video = videoRef.current;
+      if (video) {
+        video.src = newVideoSrc;
+        video.load();
+      }
+    }
+  }, [selectedCat.name, isSpeaking, currentVideoSrc, getVideoPath]);
+
   const endVideoCall = async () => {
     try {
       if (isConnected) {
@@ -115,11 +131,12 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
       {/* 视频播放区域 - 全屏猫咪视频 */}
       <div className="absolute inset-0">
         <video
-          key={`${selectedCat.name}-${isSpeaking}`} // 确保切换状态时重新加载视频
+          ref={videoRef}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
           className="w-full h-full object-cover"
           style={{ minWidth: '100%', minHeight: '100%' }}
           onError={(e) => {
@@ -134,7 +151,6 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
             target.parentElement?.appendChild(imgElement);
           }}
         >
-          <source src={getVideoPath(selectedCat.name, isSpeaking)} type="video/mp4" />
           您的浏览器不支持视频播放。
         </video>
       </div>
@@ -149,7 +165,6 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
           }`} />
         </div>
       </div>
-
 
       {/* 挂断按钮 - 底部中央 */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40">
