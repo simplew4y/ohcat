@@ -190,8 +190,8 @@ body {
   inset: 0;
   z-index: 2;
   overflow: hidden;
-  box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
-    inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+  box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.3),
+    inset -1px -1px 1px 1px rgba(255, 255, 255, 0.15);
 }
 
 .liquidGlass-text {
@@ -270,8 +270,8 @@ html, body, #__next {
     z-index: 2;
     overflow: hidden;
     border-radius: inherit;
-    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
-        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
+    box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.3),
+        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.1);
 }
 
 .message-bubble-content {

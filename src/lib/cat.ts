@@ -85,7 +85,7 @@ export class VirtualCat {
     return [...this.state.conversationHistory];
   }
 
-  public generateResponse(userMessage: string): string {
+  public generateResponse(_userMessage: string): string {
     // Simple response generation based on personality traits
     const traits = this.state.personality.traits;
     const responses = {

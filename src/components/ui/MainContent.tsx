@@ -1,18 +1,18 @@
 'use client';
 
-import React from 'react'
-import {ReactNode, useEffect, useState} from 'react';
-import {Provider, useDispatch, useSelector} from 'react-redux';
-import store, {RootState} from "@/store";
+import React, { useEffect, useState } from 'react';
+import { ReactNode } from 'react';
+import { Provider, useDispatch, useSelector } from 'react-redux';
+import store, { RootState } from "@/store";
 import HomePage from '../pages/HomePage';
 import GamePage from '../pages/GamePage';
 import ChatPage from '../pages/ChatPage';
 import CarePage from '../pages/CarePage';
 import SettingsPage from '../pages/SettingsPage';
 import VideoChatPage from '../pages/VideoChatPage';
-import {useCatStore} from "@/store/catStore";
-import {clearCurrentMsg, clearHistoryMsg} from "@/store/slices/room";
-
+import { useCatStore } from "@/store/catStore";
+import { clearCurrentMsg, clearHistoryMsg } from "@/store/slices/room";
+import { CatConfig } from '@/types/cat';
 
 interface MainContentProps {
     children?: ReactNode;
@@ -20,9 +20,9 @@ interface MainContentProps {
 
 const MainContent = ({}: MainContentProps) => {
     const [activeTab, setActiveTab] = useState(0);
-    const [selectedCat, setSelectedCat] = useState<any>(null);
+    const [selectedCat, setSelectedCat] = useState<CatConfig | null>(null);
     const [isVideoCall, setIsVideoCall] = useState(false);
-    const { selectCat, currentCat } = useCatStore();
+    const { selectCat } = useCatStore();
 
     const [messages, setMessages] = useState<Array<{id: number, text: string, sender: 'user' | 'cat', timestamp: Date}>>([]);
     const globalMsg = useSelector((state: RootState) => state.room.msgHistory);
@@ -35,7 +35,7 @@ const MainContent = ({}: MainContentProps) => {
                     id: msg.time + 1,
                     text: msg.value,
                     sender: 'user' as const,
-                    timestamp: msg.time,
+                    timestamp: new Date(msg.time),
                 };
                 setMessages(prev => [...prev, userReq]);
             } else if (msg.user === "RobotMan_" && msg.value.length > 0) {
@@ -43,7 +43,7 @@ const MainContent = ({}: MainContentProps) => {
                     id: msg.time + 1,
                     text: msg.value,
                     sender: 'cat' as const,
-                    timestamp: msg.time,
+                    timestamp: new Date(msg.time),
                 };
                 setMessages(prev => [...prev, userReq]);
             }
@@ -53,10 +53,10 @@ const MainContent = ({}: MainContentProps) => {
     };
 
     useEffect(() => {
-        if (selectedCat?.id) {
+        if (selectedCat) {
             selectCat(selectedCat.id);
         }
-    }, [selectedCat?.id]);
+    }, [selectedCat, selectCat]);
 
     const bottomTabs = [
         { icon: '🏠' },
@@ -66,7 +66,6 @@ const MainContent = ({}: MainContentProps) => {
         { icon: '⚙️' }
     ];
 
-
     return (
         <Provider store={store}>
             <div className="app-container">
@@ -75,13 +74,13 @@ const MainContent = ({}: MainContentProps) => {
                     {isVideoCall ? (
                         <VideoChatPage
                             selectedCat={selectedCat}
-                            onBack={() => { setIsVideoCall(false); setActiveTab(2); updateMessages();}}
+                            onBack={() => { setIsVideoCall(false); setActiveTab(2); updateMessages(); }}
                         />
                     ) : (
                         <>
                             {activeTab === 0 && <HomePage onCatSelect={(cat) => { setSelectedCat(cat); setActiveTab(2); }} />}
                             {activeTab === 1 && <GamePage />}
-                            {activeTab === 2 && <ChatPage selectedCat={selectedCat} onBack={() => { setActiveTab(0); setSelectedCat(null); }} onVideoCall={() => setIsVideoCall(true)} messages={messages} setMessages={setMessages} />}
+                            {activeTab === 2 && <ChatPage selectedCat={selectedCat} onBack={() => { setActiveTab(0); setSelectedCat(null); }} onVideoCall={() => setIsVideoCall(true)} />}
                             {activeTab === 3 && <CarePage />}
                             {activeTab === 4 && <SettingsPage />}
                         </>

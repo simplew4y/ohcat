@@ -14,7 +14,7 @@ type Headers = Record<string, string>;
  * @param headers
  */
 export const requestGetMethod = (apiBasicParams: string, headers = {}) => {
-  return async (params: Record<string, any> = {}) => {
+  return async (params: Record<string, string | number> = {}) => {
     const url = `${AIGC_PROXY_HOST}${apiBasicParams}&${Object.keys(params)
       .map((key) => `${key}=${params[key]}`)
       .join('&')}`;
@@ -55,7 +55,7 @@ export const requestPostMethod = (
  * @brief Handler
  * @param res
  */
-export const resultHandler = (res: any) => {
+export const resultHandler = (res: { Result?: string; ResponseMetadata?: { Error?: { Message?: string }; Action?: string } }) => {
   const { Result, ResponseMetadata } = res || {};
   if (Result === 'ok') {
     return Result;

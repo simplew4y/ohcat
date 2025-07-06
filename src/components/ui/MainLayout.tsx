@@ -9,15 +9,11 @@ import ChatPage from '../pages/ChatPage';
 import CirclePage from '../pages/CirclePage';
 import SettingsPage from '../pages/SettingsPage';
 import VideoChatPage from '../pages/VideoChatPage';
-
-interface CatInfo {
-  id: string;
-  [key: string]: any;
-}
+import { CatConfig } from '@/types/cat';
 
 const MainLayout = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const [selectedCat, setSelectedCat] = useState<CatInfo | null>(null);
+  const [selectedCat, setSelectedCat] = useState<CatConfig | null>(null);
   const [inVideoCall, setInVideoCall] = useState(false);
 
   const bottomTabs = [
@@ -73,7 +69,7 @@ const MainLayout = () => {
             <VideoChatPage selectedCat={selectedCat} onBack={() => setInVideoCall(false)} />
           ) : (
             <>
-              {activeTab === 0 && <HomePage onCatSelect={(cat: CatInfo) => { setSelectedCat(cat); setActiveTab(2); }} />}
+              {activeTab === 0 && <HomePage onCatSelect={(cat: CatConfig) => { setSelectedCat(cat); setActiveTab(2); }} />}
               {activeTab === 1 && <GamePage />}
               {activeTab === 2 && <ChatPage key={selectedCat?.id} selectedCat={selectedCat} onBack={() => { setActiveTab(0); setSelectedCat(null); }} onVideoCall={() => setInVideoCall(true)} />}
               {activeTab === 3 && <CirclePage />}

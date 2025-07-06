@@ -102,6 +102,7 @@ const GamePage = () => {
                 <div
                   className={`liquidGlass-wrapper card ${item.height} cursor-pointer hover:scale-105 transition-transform duration-300 overflow-hidden flex items-center justify-center p-4`}
                 >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={item.image}
                     alt={`Goods ${item.id}`}

@@ -3,20 +3,21 @@
  * SPDX-license-identifier: BSD-3-Clause
  */
 
-import { StreamIndex } from '@volcengine/rtc';
+// import { StreamIndex } from '@volcengine/rtc';
 import {
-  TTS_CLUSTER,
-  ARK_V3_MODEL_ID,
-  MODEL_MODE,
-  SCENE,
-  Model,
-  AI_MODEL,
+  // TTS_CLUSTER,
+  // ARK_V3_MODEL_ID,
+  // MODEL_MODE,
+  // SCENE,
+  // Model,
+  // AI_MODEL,
   AI_MODEL_MODE,
-  LLM_BOT_ID,
+  // LLM_BOT_ID,
   getRandomWelcome,
 } from '.';
 import {useCatStore} from "@/store/catStore";
-import {VirtualCat} from "@/lib/cat";
+import { CatAIConfig } from '@/types/cat';
+// import {VirtualCat} from "@/lib/cat";
 
 export const CONVERSATION_SIGNATURE = 'conversation';
 
@@ -73,7 +74,7 @@ export class ConfigFactory {
     ASRToken: undefined,
   };
 
-  Model: 'Doubao-lite-32k';
+  Model = 'Doubao-lite-32k';
 
   /**
    * @note 必填, 音色 ID, 可具体看定义。
@@ -106,7 +107,7 @@ export class ConfigFactory {
     const aiConfig = currentCat.getCatAIConfig();
     const systemPrompt = currentCat.getCatSystemPrompt();
     const welcome = getRandomWelcome(aiConfig.LLMConfig?.WelcomeSpeechSet);
-    const llmConfig = (aiConfig) => {
+    const llmConfig = (aiConfig: CatAIConfig) => {
       const params: Record<string, unknown> = {
         Mode: AI_MODEL_MODE.ARK_V3,
         /**
@@ -123,10 +124,10 @@ export class ConfigFactory {
       };
       return params;
     }
-    const ttsConfig = (aiConfig) => {
+    const ttsConfig = (aiConfig: CatAIConfig) => {
         return aiConfig.TTSConfig;
     }
-    const asrConfig = (aiConfig) => {
+    const asrConfig = (aiConfig: CatAIConfig) => {
       const params : Record<string, unknown> = {
         Provider: 'volcano',
         ProviderParams: {
