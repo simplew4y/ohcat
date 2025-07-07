@@ -223,11 +223,15 @@ const useRtcListeners = (): IEventListener => {
   };
 
   const handleUserStartAudioCapture = (_: { userId: string }) => {
-    dispatch(updateAITalkState({ isAITalking: true }));
+    // 音频捕获开始，但不直接设置AI说话状态
+    // AI说话状态由消息处理器统一管理
+    console.log('用户音频捕获开始');
   };
 
   const handleUserStopAudioCapture = (_: { userId: string }) => {
-    dispatch(updateAITalkState({ isAITalking: false }));
+    // 音频捕获停止，但不直接设置AI说话状态
+    // AI说话状态由消息处理器统一管理
+    console.log('用户音频捕获停止');
   };
 
   const handleNetworkQuality = (

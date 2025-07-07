@@ -232,16 +232,28 @@ html, body, #__next {
     max-width: 75%;
     overflow: hidden;
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .message-bubble.user {
     margin-left: auto;
     border-radius: 1.125rem 1.125rem 0 1.125rem;
+    box-shadow: 
+        0 6px 16px rgba(59, 130, 246, 0.2),
+        0 3px 6px rgba(59, 130, 246, 0.12),
+        0 1px 3px rgba(59, 130, 246, 0.08);
 }
 
 .message-bubble.cat {
     margin-right: auto;
     border-radius: 1.125rem 1.125rem 1.125rem 0;
+    box-shadow: 
+        0 6px 16px rgba(16, 185, 129, 0.2),
+        0 3px 6px rgba(16, 185, 129, 0.12),
+        0 1px 3px rgba(16, 185, 129, 0.08);
 }
 
 /* Liquid glass effect for message bubbles */

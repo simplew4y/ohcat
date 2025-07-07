@@ -219,6 +219,7 @@ export const roomSlice = createSlice({
       state.isAIGCEnable = payload.isAIGCEnable;
     },
     updateAITalkState: (state, { payload }) => {
+      console.log(`AI说话状态更新: ${payload.isAITalking ? '开始' : '停止'}`);
       state.isAIThinking = false;
       state.isUserTalking = false;
       state.isAITalking = payload.isAITalking;
@@ -276,19 +277,27 @@ export const roomSlice = createSlice({
       }
     },
     setInterruptMsg: (state) => {
-      state.isAITalking = false;
+      // 只有在实际发生中断时才设置AI说话状态为false
       if (!state.msgHistory.length) {
         return;
       }
+      
+      let hasInterrupted = false;
       /** 找到最后一个末尾的字幕, 将其状态置换为打断 */
       for (let id = state.msgHistory.length - 1; id >= 0; id--) {
         const msg = state.msgHistory[id];
         if (msg.value) {
           if (!msg.definite) {
             state.msgHistory[id].isInterrupted = true;
+            hasInterrupted = true;
           }
           break;
         }
+      }
+      
+      // 只有在真正标记了中断消息时才设置AI说话状态为false
+      if (hasInterrupted) {
+        state.isAITalking = false;
       }
     },
     clearCurrentMsg: (state) => {

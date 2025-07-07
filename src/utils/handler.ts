@@ -101,12 +101,15 @@ export const useMessageHandler = () => {
           dispatch(updateAIThinkState({ isAIThinking: true }));
           break;
         case AGENT_BRIEF.SPEAKING:
+          console.log('AI开始说话');
           dispatch(updateAITalkState({ isAITalking: true }));
           break;
         case AGENT_BRIEF.FINISHED:
+          console.log('AI完成说话');
           dispatch(updateAITalkState({ isAITalking: false }));
           break;
         case AGENT_BRIEF.INTERRUPTED:
+          console.log('AI被中断');
           dispatch(setInterruptMsg());
           break;
         default:
