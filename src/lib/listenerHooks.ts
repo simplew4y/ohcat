@@ -33,6 +33,7 @@ import {
   updateNetworkQuality,
 } from '@/store/slices/room';
 import RtcClient, { IEventListener } from './RtcClient';
+import Utils from '@/utils/utils';
 
 import { setMicrophoneList, updateSelectedDevice } from '@/store/slices/device';
 import { useMessageHandler } from '@/utils/handler';
@@ -182,6 +183,72 @@ const useRtcListeners = (): IEventListener => {
         userId,
       })
     );
+
+    // 移动端特殊处理
+    if (Utils.isMobile() && kind === 'audio') {
+      console.warn('移动端音频自动播放失败，尝试显示解锁提示');
+      showAudioUnlockPrompt();
+    }
+  };
+
+  const showAudioUnlockPrompt = () => {
+    // 检查是否已经有解锁按钮
+    if (document.getElementById('audio-unlock-prompt')) {
+      return;
+    }
+
+    const promptDiv = document.createElement('div');
+    promptDiv.id = 'audio-unlock-prompt';
+    promptDiv.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      font-family: Arial, sans-serif;
+      backdrop-filter: blur(10px);
+    `;
+
+    promptDiv.innerHTML = `
+      <p style="margin: 0 0 15px 0; font-size: 16px;">音频播放被阻止</p>
+      <p style="margin: 0 0 20px 0; font-size: 14px; color: #ccc;">请点击下方按钮启用音频</p>
+      <button id="unlock-audio-btn" style="
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+      ">启用音频</button>
+    `;
+
+    document.body.appendChild(promptDiv);
+
+    const unlockBtn = document.getElementById('unlock-audio-btn');
+    if (unlockBtn) {
+      unlockBtn.onclick = async () => {
+        try {
+          await Utils.unlockAudio();
+          promptDiv.remove();
+          console.log('音频已重新解锁');
+        } catch (error) {
+          console.error('音频解锁失败:', error);
+        }
+      };
+    }
+
+    // 10秒后自动移除提示
+    setTimeout(() => {
+      if (promptDiv.parentNode) {
+        promptDiv.remove();
+      }
+    }, 10000);
   };
 
   const addFailUser = (userId: string) => {
@@ -223,15 +290,11 @@ const useRtcListeners = (): IEventListener => {
   };
 
   const handleUserStartAudioCapture = (_: { userId: string }) => {
-    // 音频捕获开始，但不直接设置AI说话状态
-    // AI说话状态由消息处理器统一管理
-    console.log('用户音频捕获开始');
+    dispatch(updateAITalkState({ isAITalking: true }));
   };
 
   const handleUserStopAudioCapture = (_: { userId: string }) => {
-    // 音频捕获停止，但不直接设置AI说话状态
-    // AI说话状态由消息处理器统一管理
-    console.log('用户音频捕获停止');
+    dispatch(updateAITalkState({ isAITalking: false }));
   };
 
   const handleNetworkQuality = (

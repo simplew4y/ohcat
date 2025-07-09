@@ -44,7 +44,7 @@ const HomePage = ({ onCatSelect }: HomePageProps) => {
     { 
       id: "oga",
       avatar: '/images/cats/aojia.png', 
-      name: '奥迦', 
+      name: '奥伽', 
       description: '灯海小镇的心灵治愈师，用温暖光波疗愈创伤。',
       catAIConfig: {}
     },

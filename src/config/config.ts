@@ -33,6 +33,10 @@ export class ConfigFactory {
      */
     AppId: '68162f848d812c0192cf516d',
     /**
+     * @brief 非必填, 按需填充。
+     */
+    BusinessId: undefined,
+    /**
      * @brief 必填, 房间 ID, 自定义即可，例如 "Room123"。
      * @note 建议使用有特定规则、不重复的房间号名称。
      */

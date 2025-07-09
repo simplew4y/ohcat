@@ -109,6 +109,57 @@ class Utils {
   isMobile() {
     return /Mobi|Android|iPhone|iPad|Windows Phone/i.test(window.navigator.userAgent);
   }
+
+  /**
+   * @brief 解锁移动端音频播放
+   */
+  async unlockAudio(): Promise<boolean> {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) {
+        return false;
+      }
+
+      const audioContext = new AudioContext();
+      
+      // 创建静音音频来解锁
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      gainNode.gain.value = 0; // 静音
+      
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1);
+      
+      // 恢复音频上下文
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      
+      return true;
+    } catch (error) {
+      console.warn('Failed to unlock audio:', error);
+      return false;
+    }
+  }
+
+  /**
+   * @brief 检查音频上下文状态
+   */
+  getAudioContextState(): string {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) {
+        return 'unsupported';
+      }
+      const audioContext = new AudioContext();
+      return audioContext.state;
+    } catch (error) {
+      return 'error';
+    }
+  }
 }
 
 export default new Utils();

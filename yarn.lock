@@ -600,10 +600,10 @@
   resolved "https://registry.npmjs.org/@unrs/resolver-binding-linux-x64-musl/-/resolver-binding-linux-x64-musl-1.9.1.tgz"
   integrity sha512-wInTqT3Bu9u50mDStEig1v8uxEL2Ht+K8pir/YhyyrM5ordJtxoqzsL1vR/CQzOJuDunUTrDkMM0apjW/d7/PA==
 
-"@volcengine/rtc@4.66.1":
-  version "4.66.1"
-  resolved "https://registry.npmjs.org/@volcengine/rtc/-/rtc-4.66.1.tgz"
-  integrity sha512-APznH6eosmKJC1HYJJ8s6G3Mq3OSgw6ivv6uCiayM5QNMBj+GW6zxf+MVsk5rm6r4R92TLwQErWonJ8yzGO4xA==
+"@volcengine/rtc@^4.66.20":
+  version "4.66.20"
+  resolved "https://registry.npmjs.org/@volcengine/rtc/-/rtc-4.66.20.tgz"
+  integrity sha512-KZHVfOYd5Exyk0R82HhAIKYuzEmazLHBRJ57vMdAyuVU+dWg/P7NeDv1ZVU+Yzjd/kl/ilaW11OuZ1m124J/4Q==
   dependencies:
     eventemitter3 "^4.0.7"
 

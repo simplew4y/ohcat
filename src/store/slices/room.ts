@@ -60,21 +60,13 @@ export interface RoomState {
    */
   isAITalking: boolean;
   /**
-   * @brief AI 思考中
+   * @brief AI 配置
    */
-  isAIThinking: boolean;
+  aiConfig?: any;
   /**
-   * @brief 用户是否正在说话
+   * @brief 模型模式
    */
-  isUserTalking: boolean;
-  /**
-   * @brief AI 基础配置
-   */
-  aiConfig: ReturnType<any>;
-  /**
-   * @brief 当前模型的类型
-   */
-  modelMode: MODEL_MODE;
+  modelMode?: any;
   /**
    * @brief 网络质量
    */
@@ -114,13 +106,8 @@ const initialState: RoomState = {
   autoPlayFailUser: [],
   isJoined: false,
   isAIGCEnable: false,
-  isAIThinking: false,
   isAITalking: false,
-  isUserTalking: false,
   networkQuality: NetworkQuality.UNKNOWN,
-
-  aiConfig: config.aigcConfig,
-  modelMode: MODEL_MODE.ORIGINAL,
 
   msgHistory: [],
   currentConversation: {},
@@ -219,14 +206,7 @@ export const roomSlice = createSlice({
       state.isAIGCEnable = payload.isAIGCEnable;
     },
     updateAITalkState: (state, { payload }) => {
-      console.log(`AI说话状态更新: ${payload.isAITalking ? '开始' : '停止'}`);
-      state.isAIThinking = false;
-      state.isUserTalking = false;
       state.isAITalking = payload.isAITalking;
-    },
-    updateAIThinkState: (state, { payload }) => {
-      state.isAIThinking = payload.isAIThinking;
-      state.isUserTalking = false;
     },
     updateAIConfig: (state, { payload }) => {
       state.aiConfig = Object.assign(state.aiConfig, payload);
@@ -276,35 +256,16 @@ export const roomSlice = createSlice({
         });
       }
     },
-    setInterruptMsg: (state) => {
-      // 只有在实际发生中断时才设置AI说话状态为false
-      if (!state.msgHistory.length) {
-        return;
-      }
-      
-      let hasInterrupted = false;
-      /** 找到最后一个末尾的字幕, 将其状态置换为打断 */
-      for (let id = state.msgHistory.length - 1; id >= 0; id--) {
-        const msg = state.msgHistory[id];
-        if (msg.value) {
-          if (!msg.definite) {
-            state.msgHistory[id].isInterrupted = true;
-            hasInterrupted = true;
-          }
-          break;
-        }
-      }
-      
-      // 只有在真正标记了中断消息时才设置AI说话状态为false
-      if (hasInterrupted) {
-        state.isAITalking = false;
-      }
-    },
     clearCurrentMsg: (state) => {
       state.currentConversation = {};
       state.msgHistory = [];
-      state.isAITalking = false;
-      state.isUserTalking = false;
+    },
+    setInterruptMsg: (state) => {
+      // 设置打断消息的逻辑
+      const lastMsg = state.msgHistory.at(-1);
+      if (lastMsg) {
+        lastMsg.isInterrupted = true;
+      }
     },
   },
 });
@@ -322,7 +283,6 @@ export const {
   clearAutoPlayFail,
   updateAIGCState,
   updateAITalkState,
-  updateAIThinkState,
   updateAIConfig,
   updateModelMode,
   setHistoryMsg,

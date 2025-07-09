@@ -31,6 +31,7 @@ import aigcConfig, { API_PROXY_HOST } from '@/config';
 import Utils from '@/utils/utils';
 import { COMMAND, INTERRUPT_PRIORITY } from '@/utils/handler';
 
+
 export interface IEventListener {
   handleError: (e: { errorCode: any }) => void;
   handleUserJoin: (e: onUserJoinedEvent) => void;
@@ -147,7 +148,12 @@ export class RTCClient {
     this.engine.on(VERTC.events.onNetworkQuality, handleNetworkQuality);
   };
 
-  joinRoom = (token: string | null, username: string): Promise<void> => {
+  joinRoom = async (token: string | null, username: string): Promise<void> => {
+    // 移动端音频处理
+    if (Utils.isMobile()) {
+      await this.ensureAudioContextResumed();
+    }
+    
     this.engine.enableAudioPropertiesReport({ interval: 1000 });
     return this.engine.joinRoom(
       token,
@@ -392,6 +398,7 @@ export class RTCClient {
 
     const options = {
       AppId: aigcConfig.BaseConfig.AppId,
+      BusinessId: aigcConfig.BaseConfig.BusinessId,
       RoomId: roomId,
       TaskId: userId,
       AgentConfig: {
@@ -415,6 +422,7 @@ export class RTCClient {
     if (this.audioBotEnabled || sessionStorage.getItem('audioBotEnabled')) {
       await openAPIs.StopVoiceChat({
         AppId: aigcConfig.BaseConfig.AppId,
+        BusinessId: aigcConfig.BaseConfig.BusinessId,
         RoomId: roomId,
         TaskId: userId,
       });
@@ -463,6 +471,50 @@ export class RTCClient {
   getAudioBotEnabled = () => {
     return this.audioBotEnabled;
   };
+
+  /**
+   * @brief 确保音频上下文被恢复（移动端专用）
+   */
+  ensureAudioContextResumed = async () => {
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) {
+        console.warn('AudioContext not supported');
+        return;
+      }
+
+      const audioContext = new AudioContext();
+      
+      if (audioContext.state === 'suspended') {
+        console.log('AudioContext suspended, attempting to resume...');
+        await audioContext.resume();
+        console.log('AudioContext resumed:', audioContext.state);
+      } else {
+        console.log('AudioContext state:', audioContext.state);
+      }
+    } catch (error) {
+      console.warn('Failed to ensure AudioContext resumed:', error);
+    }
+  };
+
+  /**
+   * @brief 检查移动端音频支持
+   */
+  checkMobileAudioSupport = () => {
+    if (!Utils.isMobile()) {
+      return { supported: true, reason: 'Not mobile device' };
+    }
+
+    const audioContextState = Utils.getAudioContextState();
+    
+    return {
+      supported: audioContextState === 'running',
+      audioContextState,
+      userAgent: navigator.userAgent,
+      reason: audioContextState !== 'running' ? 'AudioContext not running' : 'OK'
+    };
+  };
+
 }
 
 export default new RTCClient();

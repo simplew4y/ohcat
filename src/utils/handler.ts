@@ -3,18 +3,13 @@
  * SPDX-license-identifier: BSD-3-Clause
  */
 
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 import logger from './logger';
 import {
   setHistoryMsg,
-  setInterruptMsg,
-  updateAITalkState,
-  updateAIThinkState,
 } from '@/store/slices/room';
 import RtcClient from '@/lib/RtcClient';
 import Utils from '@/utils/utils';
-import {RootState} from "@/store";
-import {useEffect, useRef} from "react";
 
 export type AnyRecord = Record<string, any>;
 
@@ -80,37 +75,28 @@ export const MessageTypeCode = {
 
 export const useMessageHandler = () => {
   const dispatch = useDispatch();
-  const msgHistory = useSelector((state: RootState) => state.room.msgHistory);
-  const msgHistoryRef = useRef(msgHistory);
-  useEffect(() => {
-    msgHistoryRef.current = msgHistory;
-  }, [msgHistory]);
-
 
   const maps = {
     /**
      * @brief 接收状态变化信息
-     * @note https://www.volcengine.com/docs/6348/1415216?s=g
      */
     [MESSAGE_TYPE.BRIEF]: (parsed: AnyRecord) => {
       const { Stage } = parsed || {};
       const { Code, Description } = Stage || {};
       logger.debug(Code, Description);
+      // 简化状态管理，只保留基础日志
       switch (Code) {
         case AGENT_BRIEF.THINKING:
-          dispatch(updateAIThinkState({ isAIThinking: true }));
+          console.log('AI思考中');
           break;
         case AGENT_BRIEF.SPEAKING:
           console.log('AI开始说话');
-          dispatch(updateAITalkState({ isAITalking: true }));
           break;
         case AGENT_BRIEF.FINISHED:
           console.log('AI完成说话');
-          dispatch(updateAITalkState({ isAITalking: false }));
           break;
         case AGENT_BRIEF.INTERRUPTED:
           console.log('AI被中断');
-          dispatch(setInterruptMsg());
           break;
         default:
           break;
@@ -118,28 +104,17 @@ export const useMessageHandler = () => {
     },
     /**
      * @brief 字幕
-     * @note https://www.volcengine.com/docs/6348/1337284?s=g
      */
     [MESSAGE_TYPE.SUBTITLE]: (parsed: AnyRecord) => {
       const data = parsed.data?.[0] || {};
-      /** debounce 记录用户输入文字 */
       if (data) {
         const { text: msg, definite, userId: user, paragraph } = data;
         logger.debug('handleRoomBinaryMessageReceived', data);
-        if ((window as any)._debug_mode) {
-          dispatch(setHistoryMsg({ msg, user, paragraph, definite }));
-        } else {
-          const isAudioEnable = RtcClient.getAudioBotEnabled();
-          if (isAudioEnable) {
-            dispatch(setHistoryMsg({ text: msg, user, paragraph, definite }));
-            console.log('msgHistory (latest):', msgHistoryRef.current);
-          }
-        }
+        dispatch(setHistoryMsg({ text: msg, user, paragraph, definite }));
       }
     },
     /**
      * @brief Function calling
-     * @note https://www.volcengine.com/docs/6348/1359441?s=g
      */
     [MESSAGE_TYPE.FUNCTION_CALL]: (parsed: AnyRecord) => {
       const name: string = parsed?.tool_calls?.[0]?.function?.name;
