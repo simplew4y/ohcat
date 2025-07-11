@@ -30,6 +30,7 @@ import openAPIs from '@/app/api/volcano/api';
 import aigcConfig, { API_PROXY_HOST } from '@/config';
 import Utils from '@/utils/utils';
 import { COMMAND, INTERRUPT_PRIORITY } from '@/utils/handler';
+import { audioStreamManager } from './AudioStreamManager';
 
 
 export interface IEventListener {
@@ -177,6 +178,10 @@ export class RTCClient {
   leaveRoom = () => {
     this.stopAudioBot();
     this.audioBotEnabled = false;
+    
+    // 停止所有音频流
+    audioStreamManager.stopAllStreams();
+    
     this.engine.leaveRoom();
     VERTC.destroyEngine(this.engine);
     this._audioCaptureDevice = undefined;
@@ -513,6 +518,65 @@ export class RTCClient {
       userAgent: navigator.userAgent,
       reason: audioContextState !== 'running' ? 'AudioContext not running' : 'OK'
     };
+  };
+
+  /**
+   * @brief 添加音频流到队列管理器
+   */
+  addAudioStream = (audioData: MediaStream | Blob | ArrayBuffer | string, isAIResponse: boolean = false) => {
+    return audioStreamManager.addAudioStream(audioData, {
+      isAIResponse,
+      timestamp: Date.now()
+    });
+  };
+
+  /**
+   * @brief 停止所有音频流
+   */
+  stopAllAudioStreams = () => {
+    audioStreamManager.stopAllStreams();
+  };
+
+  /**
+   * @brief 暂停所有音频流
+   */
+  pauseAllAudioStreams = () => {
+    audioStreamManager.pauseAllStreams();
+  };
+
+  /**
+   * @brief 恢复所有音频流
+   */
+  resumeAllAudioStreams = () => {
+    audioStreamManager.resumeAllStreams();
+  };
+
+  /**
+   * @brief 跳过当前音频流
+   */
+  skipCurrentAudioStream = () => {
+    audioStreamManager.skipCurrentStream();
+  };
+
+  /**
+   * @brief 获取音频流状态
+   */
+  getAudioStreamStatus = () => {
+    return audioStreamManager.getStatus();
+  };
+
+  /**
+   * @brief 检查是否正在播放 AI 回复
+   */
+  isPlayingAIResponse = () => {
+    return audioStreamManager.isPlayingAIResponse();
+  };
+
+  /**
+   * @brief 手动触发说话状态（用于测试或模拟）
+   */
+  triggerSpeakingState = (isSpeaking: boolean) => {
+    audioStreamManager.triggerSpeakingState(isSpeaking);
   };
 
 }

@@ -20,6 +20,7 @@ import VERTC, {
 } from '@volcengine/rtc';
 import { useDispatch } from 'react-redux';
 import { useRef } from 'react';
+import RTCClient from './RtcClient';
 
 import {
   IUser,
@@ -289,12 +290,24 @@ const useRtcListeners = (): IEventListener => {
     playStatus.current[userId] = playUser;
   };
 
-  const handleUserStartAudioCapture = (_: { userId: string }) => {
+  const handleUserStartAudioCapture = (event: { userId: string }) => {
     dispatch(updateAITalkState({ isAITalking: true }));
+    
+    // 如果是 AI 机器人开始音频捕获，触发说话动画
+    if (event.userId.includes('RobotMan_') || event.userId.includes('Bot')) {
+      console.log('AI bot started speaking, triggering speaking animation');
+      RTCClient.triggerSpeakingState(true);
+    }
   };
 
-  const handleUserStopAudioCapture = (_: { userId: string }) => {
+  const handleUserStopAudioCapture = (event: { userId: string }) => {
     dispatch(updateAITalkState({ isAITalking: false }));
+    
+    // 如果是 AI 机器人停止音频捕获，停止说话动画
+    if (event.userId.includes('RobotMan_') || event.userId.includes('Bot')) {
+      console.log('AI bot stopped speaking, stopping speaking animation');
+      RTCClient.triggerSpeakingState(false);
+    }
   };
 
   const handleNetworkQuality = (

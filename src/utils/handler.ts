@@ -91,12 +91,30 @@ export const useMessageHandler = () => {
           break;
         case AGENT_BRIEF.SPEAKING:
           console.log('AI开始说话');
+          // 触发说话动画
+          {
+            import('../lib/RtcClient').then(({ default: RTCClient }) => {
+              RTCClient.triggerSpeakingState(true);
+            });
+          }
           break;
         case AGENT_BRIEF.FINISHED:
           console.log('AI完成说话');
+          // 停止说话动画
+          {
+            import('../lib/RtcClient').then(({ default: RTCClient }) => {
+              RTCClient.triggerSpeakingState(false);
+            });
+          }
           break;
         case AGENT_BRIEF.INTERRUPTED:
           console.log('AI被中断');
+          // 停止说话动画
+          {
+            import('../lib/RtcClient').then(({ default: RTCClient }) => {
+              RTCClient.triggerSpeakingState(false);
+            });
+          }
           break;
         default:
           break;

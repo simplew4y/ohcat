@@ -6,6 +6,8 @@ import {RootState} from "@/store";
 import { CatConfig } from '@/types/cat';
 import { VirtualCat } from '@/lib/cat';
 import Utils from '@/utils/utils';
+import { registerSpeakingStateCallback } from '@/lib/AudioStreamManager';
+import SpeakingAnimationTest from '@/components/SpeakingAnimationTest';
 interface VideoChatPageProps {
   selectedCat: CatConfig | null;
   onBack: () => void;
@@ -132,15 +134,23 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
   const [showStartButton, setShowStartButton] = useState(true);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const leave = useLeave();
   const [, join] = useJoin();
   const { selectCat } = useCatStore();
   
-  // 简化：默认为idle状态
-  const isSpeaking = false;
-  
   const fps = 30;
+  
+  // 监听说话状态变化
+  useEffect(() => {
+    const unregister = registerSpeakingStateCallback((speaking: boolean) => {
+      console.log(`VideoChatPage: Speaking state changed to ${speaking}`);
+      setIsSpeaking(speaking);
+    });
+
+    return unregister;
+  }, []);
   
   // 处理开始对话按钮点击
   const handleStartChat = async () => {
@@ -539,6 +549,18 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
         </div>
       )}
 
+      {/* 说话状态指示器 - 右上角 */}
+      {!showStartButton && (
+        <div className="absolute top-6 right-6 z-50">
+          <div className="px-4 py-2 bg-black/30 text-white rounded-lg backdrop-blur-sm text-sm font-medium">
+            {selectedCat?.name} {isSpeaking ? '正在说话' : '待机中'}
+            <div className={`w-2 h-2 rounded-full ml-2 inline-block ${
+              isSpeaking ? 'bg-blue-500 animate-pulse' : 'bg-gray-500'
+            }`} />
+          </div>
+        </div>
+      )}
+
       {/* 挂断按钮 - 底部中央 */}
       {!showStartButton && (
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-40">
@@ -552,6 +574,9 @@ const VideoChatPage = ({ selectedCat, onBack }: VideoChatPageProps) => {
           </button>
         </div>
       )}
+
+      {/* 测试组件 - 仅在开发环境显示 */}
+      {process.env.NODE_ENV === 'development' && <SpeakingAnimationTest />}
     </div>
   );
 };
