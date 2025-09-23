@@ -2,6 +2,9 @@ export interface ChatRequest {
   message: string;
   catId: string;
   prompt: string;
+  baseURL?: string;
+  apiKey?: string;
+  model?: string;
 }
 
 export interface ChatResponse {
@@ -10,8 +13,15 @@ export interface ChatResponse {
   timestamp: string;
 }
 
+export interface LLMConfig {
+  baseURL: string;
+  apiKey: string;
+  model: string;
+}
+
 export class ChatService {
   private static instance: ChatService;
+  private llmConfig: LLMConfig | null = null;
 
   public static getInstance(): ChatService {
     if (!ChatService.instance) {
@@ -20,14 +30,30 @@ export class ChatService {
     return ChatService.instance;
   }
 
+  public setLLMConfig(config: LLMConfig): void {
+    this.llmConfig = config;
+  }
+
+  public getLLMConfig(): LLMConfig | null {
+    return this.llmConfig;
+  }
+
   async sendMessage(request: ChatRequest): Promise<ChatResponse> {
     try {
+      // 如果有配置的LLM设置，使用它们
+      const finalRequest = { ...request };
+      if (this.llmConfig) {
+        finalRequest.baseURL = finalRequest.baseURL || this.llmConfig.baseURL;
+        finalRequest.apiKey = finalRequest.apiKey || this.llmConfig.apiKey;
+        finalRequest.model = finalRequest.model || this.llmConfig.model;
+      }
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(request),
+        body: JSON.stringify(finalRequest),
       });
 
       if (!response.ok) {

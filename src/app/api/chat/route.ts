@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, catId, prompt } = await request.json();
+    const { message, catId, prompt, baseURL, apiKey, model } = await request.json();
 
     if (!message || !catId || !prompt) {
       return NextResponse.json(
@@ -11,8 +11,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = "sk-iXVMg4qwUdjHYPtN3fBaE77d03C54a11Ab97D8BeB3845d5c";
-    if (!apiKey) {
+    // 使用传入的配置或环境变量作为默认值
+    const llmConfig = {
+      baseURL: baseURL || process.env.LLM_BASE_URL || 'https://az.gptplus5.com/v1',
+      apiKey: apiKey || process.env.LLM_API_KEY || "sk-iXVMg4qwUdjHYPtN3fBaE77d03C54a11Ab97D8BeB3845d5c",
+      model: model || process.env.LLM_MODEL || 'gpt-4o-mini'
+    };
+
+    if (!llmConfig.apiKey) {
       return NextResponse.json(
         { error: 'API key not configured' },
         { status: 500 }
@@ -21,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // 构建对话请求
     const chatRequest = {
-      model: 'gpt-4o-mini',
+      model: llmConfig.model,
       messages: [
         {
           role: 'system',
@@ -37,12 +43,12 @@ export async function POST(request: NextRequest) {
       stream: false
     };
 
-    // 调用GPT API
-    const response = await fetch('https://az.gptplus5.com/v1/chat/completions', {
+    // 调用LLM API
+    const response = await fetch(`${llmConfig.baseURL}/chat/completions`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${llmConfig.apiKey}`
       },
       body: JSON.stringify(chatRequest)
     });
@@ -80,3 +86,4 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+

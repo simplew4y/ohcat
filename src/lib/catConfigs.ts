@@ -161,12 +161,12 @@ export const catConfigs: CatConfig[] = [
         Provider: "volcano",
         ProviderParams: {
           app: {
-            AppId: '4348403671',
+            AppId: '8282595713',
             Cluster: 'volcano_icl',
-            Token: 'B1_MvfGGiF1K3qecY-_28DFW4kbkegtX'
+            Token: 'Q6mFZyKbuIpjtnadSKPJmRrey8lbYCr3'
           },
           audio: {
-            voice_type: 'S_z3C6AUZq1',
+            voice_type: 'S_hWe6sVTx1',
             speed_ratio: 1.0
           }
         }
@@ -182,12 +182,12 @@ export const catConfigs: CatConfig[] = [
         Provider: "volcano",
         ProviderParams: {
           app: {
-            AppId: '4348403671',
+            AppId: '7004571594',
             Cluster: 'volcano_icl',
-            Token: 'B1_MvfGGiF1K3qecY-_28DFW4kbkegtX'
+            Token: 'sHSSg7gfLTWbmtdN10eRZNvCVSGouY35'
           },
           audio: {
-            voice_type: 'S_z3C6AUZq1',
+            voice_type: 'S_N4TQOWTx1',
             speed_ratio: 1.0
           }
         }
@@ -203,12 +203,12 @@ export const catConfigs: CatConfig[] = [
         Provider: "volcano",
         ProviderParams: {
           app: {
-            AppId: '4348403671',
+            AppId: '3876406550',
             Cluster: 'volcano_icl',
-            Token: 'B1_MvfGGiF1K3qecY-_28DFW4kbkegtX'
+            Token: 'h2HvO_rZc2Y5BbDTZHoyWZUI3cBsKjeO'
           },
           audio: {
-            voice_type: 'S_z3C6AUZq1',
+            voice_type: 'S_DN2JYnqw1',
             speed_ratio: 1.0
           }
         }
@@ -224,12 +224,12 @@ export const catConfigs: CatConfig[] = [
         Provider: "volcano",
         ProviderParams: {
           app: {
-            AppId: '4348403671',
+            AppId: '1012192635',
             Cluster: 'volcano_icl',
-            Token: 'B1_MvfGGiF1K3qecY-_28DFW4kbkegtX'
+            Token: 'fkmIzo8Qj_bQSR39xsCfBdEBevBoj_l_'
           },
           audio: {
-            voice_type: 'S_z3C6AUZq1',
+            voice_type: 'S_z1NEUXTx1',
             speed_ratio: 1.0
           }
         }
@@ -245,12 +245,12 @@ export const catConfigs: CatConfig[] = [
         Provider: "volcano",
         ProviderParams: {
           app: {
-            AppId: '4348403671',
+            AppId: '7570575974',
             Cluster: 'volcano_icl',
-            Token: 'B1_MvfGGiF1K3qecY-_28DFW4kbkegtX'
+            Token: 'HYfvT8twlnd0RyMKeIfTL_-lsBb7hJ78',
           },
           audio: {
-            voice_type: 'S_z3C6AUZq1',
+            voice_type: 'S_VeO08b0r1',
             speed_ratio: 1.0
           }
         }

@@ -2,8 +2,9 @@ import {useEffect, useState} from 'react';
 import SendIcon from '../ui/SendIcon';
 import {RootState} from "@/store";
 import {useDispatch, useSelector} from "react-redux";
-import {clearHistoryMsg} from "@/store/slices/room";
+import {clearHistoryMsg, setHistoryMsg} from "@/store/slices/room";
 import { CatConfig } from '@/types/cat';
+import { ChatService } from '@/services/chatService';
 
 interface Message {
   id: number;
@@ -22,8 +23,9 @@ interface ChatPageProps {
 const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
   const [message, setMessage] = useState('');
   const [messagesHistory, setMessagesHistory] = useState<{[catId: string]: Message[]}>({});
-
+  const [isLoading, setIsLoading] = useState(false);
   const [isComposing, setIsComposing] = useState(false);
+  const chatService = ChatService.getInstance();
   // const { selectCat,currentCat } = useCatStore();
   const dispatch = useDispatch();
   
@@ -107,36 +109,94 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
     }
   }, [msgHistory, selectedCat?.id]);
 
-  const sendMessage = () => {
-    if (!message.trim() || !selectedCat?.id) return;
+  const sendMessage = async () => {
+    if (!message.trim() || !selectedCat?.id || isLoading) return;
     
-    const newMessage: Message = {
+    const userMessage: Message = {
       id: Date.now(),
       text: message,
       sender: 'user' as const,
       timestamp: new Date()
     };
     
-    // 更新特定猫咪的消息历史
+    // 同时更新文字消息历史和语音消息历史（Redux store）
     setMessagesHistory(prev => ({
       ...prev,
-      [selectedCat.id]: [...(prev[selectedCat.id] || []), newMessage]
+      [selectedCat.id]: [...(prev[selectedCat.id] || []), userMessage]
     }));
-    setMessage('');
     
-    // 模拟猫咪回复
-    setTimeout(() => {
+    // 不要将文字消息添加到语音记忆中，避免覆盖语音历史
+    // dispatch(setHistoryMsg({ 
+    //   text: message, 
+    //   user: 'user', 
+    //   paragraph: true, 
+    //   definite: true,
+    //   time: Date.now()
+    // }));
+    
+    const currentMessage = message;
+    setMessage('');
+    setIsLoading(true);
+    
+    try {
+      // 使用完整的猫咪配置，包括个性化prompt
+      const fullPrompt = selectedCat.prompt || `你是${selectedCat.name}，一只可爱的猫咪。请用温暖友好的语气回复用户的消息。`;
+      
+      // 调用AI服务获取回复
+      const response = await chatService.sendMessage({
+        message: currentMessage,
+        catId: selectedCat.id,
+        prompt: fullPrompt
+      });
+      
       const catReply: Message = {
         id: Date.now() + 1,
-        text: `${selectedCat?.name || '猫咪'}收到了你的消息喵~`,
+        text: response.reply,
         sender: 'cat' as const,
         timestamp: new Date()
       };
+      
+      // 更新文字消息历史
       setMessagesHistory(prev => ({
         ...prev,
         [selectedCat.id]: [...(prev[selectedCat.id] || []), catReply]
       }));
-    }, 1000);
+      
+      // 不要将文字回复添加到语音记忆中，避免覆盖语音历史
+      // dispatch(setHistoryMsg({ 
+      //   text: response.reply, 
+      //   user: BotName, 
+      //   paragraph: true, 
+      //   definite: true,
+      //   time: Date.now() + 1
+      // }));
+      
+    } catch (error) {
+      console.error('发送消息失败:', error);
+      // 使用错误回复
+      const errorReply: Message = {
+        id: Date.now() + 1,
+        text: chatService.getErrorReply(selectedCat.id),
+        sender: 'cat' as const,
+        timestamp: new Date()
+      };
+      
+      setMessagesHistory(prev => ({
+        ...prev,
+        [selectedCat.id]: [...(prev[selectedCat.id] || []), errorReply]
+      }));
+      
+      // 不要将错误回复添加到语音记忆中，避免覆盖语音历史
+      // dispatch(setHistoryMsg({ 
+      //   text: errorReply.text, 
+      //   user: BotName, 
+      //   paragraph: true, 
+      //   definite: true,
+      //   time: Date.now() + 1
+      // }));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!selectedCat) return null;
@@ -295,14 +355,20 @@ const ChatPage = ({ selectedCat, onBack, onVideoCall }: ChatPageProps) => {
             {/* 发送按钮 */}
             <button
               onClick={sendMessage}
-              disabled={!message.trim()}
+              disabled={!message.trim() || isLoading}
               className="glass-button px-8 py-4 rounded-lg"
             >
               <div className="glass-button-glass-effect"></div>
               <div className="glass-button-glass-tint"></div>
               <div className="glass-button-glass-shine"></div>
               <div className="glass-button-content">
-                <SendIcon className="w-12 h-12" />
+                {isLoading ? (
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <SendIcon className="w-12 h-12" />
+                )}
               </div>
             </button>
 
